@@ -29,6 +29,7 @@ var WIDTH = window.innerWidth,
 	NUMAI = 1,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
+	MAXAMMO = 3;
 	GOTHIT = false,
 	DEBUG = true,
 	MAXDIST = 750,
@@ -44,7 +45,7 @@ var WIDTH = window.innerWidth,
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
-var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100;
+var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXAMMO, lastShotFired = 0;
 var healthCube, lastHealthPickup = 0;
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
@@ -605,12 +606,24 @@ function createBullet(obj) {
 	sphere.position.set(controls.object.position.x, controls.object.position.y * 0.8, controls.object.position.z);
 
 	if (obj instanceof t.Camera) {
-		var vector = new t.Vector3(mouse.x, mouse.y, 1);
-		projector.unprojectVector(vector, obj);
-		sphere.ray = new t.Ray(
-				obj.position,
-				vector.sub(obj.position).normalize()
-		);
+		if (ammo <= 0) {
+			if (Date.now() > lastShotFired + 2000)
+				ammo = MAXAMMO;
+				createjs.Sound.play('death').addEventListener("complete", this.stop());
+		} else {
+			lastShotFired = Date.now();
+			ammo--;
+			var vector = new t.Vector3(mouse.x, mouse.y, 1);
+			projector.unprojectVector(vector, obj);
+			sphere.ray = new t.Ray(
+					obj.position,
+					vector.sub(obj.position).normalize()
+			);
+			sphere.owner = obj;
+			
+			bullets.push(sphere);
+			scene.add(sphere);
+		}
 	}
 	else {
 		var vector = controls.object.position.clone();
@@ -618,11 +631,11 @@ function createBullet(obj) {
 				obj.position,
 				vector.sub(obj.position).normalize()
 		);
+		sphere.owner = obj;
+		
+		bullets.push(sphere);
+		scene.add(sphere);
 	}
-	sphere.owner = obj;
-	
-	bullets.push(sphere);
-	scene.add(sphere);
 	
 	return sphere;
 }
