@@ -30,7 +30,7 @@ var WIDTH = window.innerWidth,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
 	GOTHIT = false,
-	DEBUG = false,
+	DEBUG = true,
 	MAXDIST = 750,
 	soundLoaded = false,
 	manifest = [
@@ -290,7 +290,7 @@ function render() {
 		// console.log("I HAVE AI");
 		var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
 		if (a.health <= 0) {
-			// console.log("HEALTH LO");
+			console.log("DED");
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
