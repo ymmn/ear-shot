@@ -22,6 +22,7 @@ TODO
 - [ ] Reasonable level difficulty progression
 - [ ] Functioning health hud
 - [ ] Make bullets actually fly at crosshair
+- [ ] Loading screen at beginning of the game
 - [X] Make cube emit looped noise
 - [X] Make cube noise pan according to position and camera
 - [X] Change controls
