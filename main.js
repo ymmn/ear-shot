@@ -39,7 +39,7 @@ var WIDTH = window.innerWidth,
 		{id:"gunshot", src:"assets/gunshot.wav"},
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
-		{id:"healthpack", src:"assets/healthpack.mp3"}
+		{id:"healthpack", src:"assets/healthpack.mp3"},
 	];
 
 // Global vars
@@ -264,9 +264,13 @@ function render() {
 			health -= 10;
 			if (health < 0) {
 				health = 0;
+				alert("deathgrunt");
 				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
 			}
-			else createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
+			else {
+				alert("paingrunt");
+				createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
+			}
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
@@ -348,6 +352,10 @@ function render() {
 			$('#hurt').fadeIn(75);
 			health -= 10;
 			if (health < 0) health = 0;
+			if (health < 25){	
+				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+			}
+			else createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
