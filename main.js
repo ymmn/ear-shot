@@ -423,13 +423,13 @@ function setupScene() {
 	var floorTex = t.ImageUtils.loadTexture('images/floor-forest.jpg');
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
+	floorTex.repeat.set(20,20);
 	var floorMesh = new t.MeshBasicMaterial({map: floorTex});
 	// floorTex = new t.MeshLambertMaterial({color: 0xABCABC})
 	var floor = new t.Mesh(
 			new t.CubeGeometry(units * UNITSIZE, 10, units * UNITSIZE),
 			floorMesh
 	);
-	console.log(floorTex, floor)
 	scene.add(floor);
 	for (var i = 0; i < mapW-1; i++) {
 		for (var j = 0; j < mapH-1; j++) {
