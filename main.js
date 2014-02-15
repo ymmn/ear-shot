@@ -160,7 +160,7 @@ function init() {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet();
-			createjs.Sound.play('gunshot').addEventListener("complete", this.stop());
+			createjs.Sound.play('gunshot');
 		}
 	});
 	
