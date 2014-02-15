@@ -28,7 +28,7 @@ function AI_Sound() {
 
 	// Load a sound file using an ArrayBuffer XMLHttpRequest.
 	var request = new XMLHttpRequest();
-	request.open("GET", "assets/loop.wav", true);
+	request.open("GET", "assets/footsteps.mp3", true);
 	request.responseType = "arraybuffer";
 	request.onload = function(e) {
 

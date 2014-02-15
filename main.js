@@ -35,7 +35,11 @@ var WIDTH = window.innerWidth,
 	soundLoaded = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
-		{id:"hurt", src:"assets/hurt.wav"}
+		{id:"hurt", src:"assets/hurt.wav"},
+		{id:"gunshot", src:"assets/gunshot.wav"},
+		{id:"paingrunt", src:"assets/paingrunt.wav"},
+		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
+		{id:"healthpack", src:"assets/healthpack.mp3"},
 	];
 
 // Global vars
@@ -156,6 +160,7 @@ function init() {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet();
+			createjs.Sound.play('gunshot').addEventListener("complete", this.stop());
 		}
 	});
 	
@@ -197,6 +202,8 @@ function render() {
 			health = Math.min(health + 50, 100);
 			$('#health').html(health);
 			lastHealthPickup = Date.now();
+			createjs.Sound.play('healthpack').addEventListener("complete", this.stop());
+
 		}
 		healthcube.material.wireframe = false;
 	}
@@ -254,7 +261,15 @@ function render() {
 		if (distance(p.x, p.z, controls.object.position.x, controls.object.position.z) < 25 && b.owner != cam) {
 			$('#hurt').fadeIn(75);
 			health -= 10;
-			if (health < 0) health = 0;
+			if (health < 0) {
+				health = 0;
+				alert("deathgrunt");
+				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+			}
+			else {
+				alert("paingrunt");
+				createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
+			}
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
@@ -334,6 +349,10 @@ function render() {
 			$('#hurt').fadeIn(75);
 			health -= 10;
 			if (health < 0) health = 0;
+			if (health < 25){	
+				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+			}
+			else createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
