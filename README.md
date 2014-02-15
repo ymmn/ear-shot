@@ -9,5 +9,6 @@ TODO
 - [ ] Make cube noise pan according to position and camera
 - [ ] Get Crosshair to draw and change controls
 - [ ] Redo AIs
-- [ ] Change scenery to open
+- [X] Change scenery to open
+- [X] Change damage from bullets to within radius
 

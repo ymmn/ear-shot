@@ -74,7 +74,7 @@ function init() {
 	scene.add(cam);
 	
 	// Camera moves with mouse, flies around with WASD/arrow keys
-	controls = new t.FirstPersonControls(cam);
+	controls = new t.PointerLockControls(cam);
 	controls.movementSpeed = MOVESPEED;
 	controls.lookSpeed = LOOKSPEED;
 	controls.lookVertical = false; // Temporary solution; play on flat surfaces only
@@ -221,7 +221,6 @@ function render() {
 			addAI();
 		}
 		// AI Damage
-		console.log(Math.floor(distance(a.position.x, a.position.z, cam.position.x, cam.position.z)),!GOTHIT, distance(a.position.x, a.position.z, cam.position.x, cam.position.z) < DAMAGERADIUS)
 		if (!GOTHIT && distance(a.position.x, a.position.z, cam.position.x, cam.position.z) < DAMAGERADIUS) {
 			$('#hurt').fadeIn(75);
 			health -= 10;
