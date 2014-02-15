@@ -3,25 +3,11 @@ var changeListenerPosition;
 var changeListenerOrientation;
 var dbgChangeListenerOrientation;
 
-function playSound() {
-	// Detect if the audio context is supported.
-	window.AudioContext = (
-	  window.AudioContext ||
-	  window.webkitAudioContext ||
-	  null
-	);
+var audioContext;
+function AI_Sound() {
 
-	if (!AudioContext) {
-	  throw new Error("AudioContext not supported!");
-	} 
-
-	// Create a new audio context.
-	var ctx = new AudioContext();
-
-	// Create a AudioGainNode to control the main volume.
-	// var mainVolume = ctx.createGain();
-	// Connect the main volume node to the context destination.
-	// mainVolume.connect(ctx.destination);
+	var ctx = audioContext;
+	var that = this;
 
 	// Create an object with a sound source and a volume control.
 	var sound = {};
@@ -42,7 +28,7 @@ function playSound() {
 
 	// Load a sound file using an ArrayBuffer XMLHttpRequest.
 	var request = new XMLHttpRequest();
-	request.open("GET", "assets/loop.wav", true);
+	request.open("GET", "assets/footsteps.mp3", true);
 	request.responseType = "arraybuffer";
 	request.onload = function(e) {
 
@@ -56,18 +42,21 @@ function playSound() {
 	  soundLoaded = true;
 
 	  // sound.panner = ctx.createPanner();
-	  window.panner = sound.panner;
 		// Instead of hooking up the volume to the main volume, hook it up to the panner.
 		// sound.volume.connect(sound.panner);
 		// And hook up the panner to the main volume.
 		// sound.panner.connect(mainVolume);
 
-		changeAudioPosition = function (x, y, z) {
+		that.stop = function() {
+			sound.source.stop();
+		};
+		
+		that.changeAudioPosition = function (x, y, z) {
 			// console.log("(" + x + ", " + y + ", " + z + ")");
 			sound.panner.setPosition(x, y, z);
 		};
 
-		changeAudioOrientation = function(m) {
+		that.changeAudioOrientation = function(m) {
 			var vec = new THREE.Vector3(0,0,1);
 
 			// Save the translation column and zero it.
@@ -87,38 +76,65 @@ function playSound() {
 			m.n34 = mz;
 		};
 
-		changeListenerPosition = function (x, y, z) {
-			ctx.listener.setPosition(x, y, z);			
-		};
 
-		dbgChangeListenerOrientation = function(x, y, z) {
-			ctx.listener.setOrientation(x, y, z, 0, 0, 0);
-		};
-
-		changeListenerOrientation = function(camera) {
-			// The camera's world matrix is named "matrix".
-			// console.log(camera.matrix.elements);
-			var m = camera.matrix;
-
-			var mx = m.n14, my = m.n24, mz = m.n34;
-			m.n14 = m.n24 = m.n34 = 0;
-
-			// Multiply the orientation vector by the world matrix of the camera.
-			var vec = new THREE.Vector3(0,0,1);
-			vec.applyProjection( m );
-			// m.multiplyVector3(vec);
-			vec.normalize();
-
-			// Multiply the up vector by the world matrix.
-			var up = new THREE.Vector3(0,-1,0);
-			up.applyProjection( m );
-			// m.multiplyVector3(up);
-			up.normalize();
-
-			// console.log("(" + vec.x + ", " + vec.y + ", " + vec.z + ")");
-			// Set the orientation and the up-vector for the listener.
-			ctx.listener.setOrientation(vec.x, vec.y, vec.z, up.x, up.y, up.z);
-		};
 	};
 	request.send();
+}
+
+
+function setupSound() {
+	// Detect if the audio context is supported.
+	window.AudioContext = (
+	  window.AudioContext ||
+	  window.webkitAudioContext ||
+	  null
+	);
+
+	if (!AudioContext) {
+	  throw new Error("AudioContext not supported!");
+	} 
+
+	// Create a new audio context.
+	var ctx = new AudioContext();
+	audioContext = ctx;
+
+	// Create a AudioGainNode to control the main volume.
+	// var mainVolume = ctx.createGain();
+	// Connect the main volume node to the context destination.
+	// mainVolume.connect(ctx.destination);
+	// loadSound(ctx);
+
+	changeListenerPosition = function (x, y, z) {
+		ctx.listener.setPosition(x, y, z);			
+	};
+
+	dbgChangeListenerOrientation = function(x, y, z) {
+		ctx.listener.setOrientation(x, y, z, 0, 0, 0);
+	};
+
+	changeListenerOrientation = function(camera) {
+		// The camera's world matrix is named "matrix".
+		// console.log(camera.matrix.elements);
+		var m = camera.matrix;
+
+		var mx = m.n14, my = m.n24, mz = m.n34;
+		m.n14 = m.n24 = m.n34 = 0;
+
+		// Multiply the orientation vector by the world matrix of the camera.
+		var vec = new THREE.Vector3(0,0,1);
+		vec.applyProjection( m );
+		// m.multiplyVector3(vec);
+		vec.normalize();
+
+		// Multiply the up vector by the world matrix.
+		var up = new THREE.Vector3(0,-1,0);
+		up.applyProjection( m );
+		// m.multiplyVector3(up);
+		up.normalize();
+
+		// console.log("(" + vec.x + ", " + vec.y + ", " + vec.z + ")");
+		// Set the orientation and the up-vector for the listener.
+		ctx.listener.setOrientation(vec.x, vec.y, vec.z, up.x, up.y, up.z);
+	};
+
 }

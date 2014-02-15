@@ -26,7 +26,7 @@ var WIDTH = window.innerWidth,
 	MOVESPEED = 100,
 	LOOKSPEED = 0.075,
 	BULLETMOVESPEED = MOVESPEED * 15,
-	NUMAI = 1,
+	NUMAI = 3,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
 	GOTHIT = false,
@@ -35,7 +35,11 @@ var WIDTH = window.innerWidth,
 	soundLoaded = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
-		{id:"hurt", src:"assets/hurt.wav"}
+		{id:"hurt", src:"assets/hurt.wav"},
+		{id:"gunshot", src:"assets/gunshot.wav"},
+		{id:"paingrunt", src:"assets/paingrunt.wav"},
+		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
+		{id:"healthpack", src:"assets/healthpack.mp3"},
 	];
 
 // Global vars
@@ -112,7 +116,7 @@ $(document).ready(function() {
 
 // Setup
 function init() {
-	playSound();
+	setupSound();
 	createjs.Sound.registerManifest(manifest);
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
@@ -156,6 +160,7 @@ function init() {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet();
+			createjs.Sound.play('gunshot').addEventListener("complete", this.stop());
 		}
 	});
 	
@@ -197,6 +202,8 @@ function render() {
 			health = Math.min(health + 50, 100);
 			$('#health').html(health);
 			lastHealthPickup = Date.now();
+			createjs.Sound.play('healthpack').addEventListener("complete", this.stop());
+
 		}
 		healthcube.material.wireframe = false;
 	}
@@ -233,7 +240,6 @@ function render() {
 				var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
 				if (a.health > 0) {
 					var hurtSound = createjs.Sound.play('hurt');
-					hurtSound.addEventListener("complete", this.stop());
 					var vol;
 					if (distFromPlayer > MAXDIST) {
 						vol = 0.01;
@@ -243,7 +249,7 @@ function render() {
 						vol = (MAXDIST - distFromPlayer) / MAXDIST;
 					}
 					hurtSound.setVolume(vol);
-					console.log(distFromPlayer, MAXDIST, hurtSound.volume)
+					// console.log(distFromPlayer, MAXDIST, hurtSound.volume)
 				}
 				setTimeout(function() {  if(a.health > 0 && a.invisible == DEBUG) { console.log("invisi again"); scene.add(a); a.invisible = !DEBUG; }/*a.material.opacity = 1;*/ },1000);
 				var color = a.material.color, percent = a.health / 100;
@@ -255,7 +261,15 @@ function render() {
 		if (distance(p.x, p.z, controls.object.position.x, controls.object.position.z) < 25 && b.owner != cam) {
 			$('#hurt').fadeIn(75);
 			health -= 10;
-			if (health < 0) health = 0;
+			if (health < 0) {
+				health = 0;
+				alert("deathgrunt");
+				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+			}
+			else {
+				alert("paingrunt");
+				createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
+			}
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
@@ -268,24 +282,22 @@ function render() {
 			b.translateZ(speed * d.z);
 		}
 	}
-	window.camm = controls.object.position;
 
 	// Update AI.
 	// console.log(ai.length);
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
 		// console.log("I HAVE AI");
-		window.aii = a.position;
-		var distFromPlayer = distance(window.aii.x, window.aii.z, window.camm.x, window.camm.z);
+		var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
 		if (a.health <= 0) {
 			// console.log("HEALTH LO");
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
 			$('kills').text(kills);
-			console.log("DED");
+			/* stop footsteps */
+			a.sound.stop();
 			var deathSound = createjs.Sound.play('death');
-			deathSound.addEventListener("complete", this.stop());
 			var vol;
 			if (distFromPlayer > MAXDIST) {
 				vol = 0.01;
@@ -303,8 +315,8 @@ function render() {
 
 		/* update enemy audio based on position and orientation */
 		if(soundLoaded) {
-			changeAudioPosition(a.position.x, a.position.y, a.position.z);
-			changeAudioOrientation(a.matrixWorld);
+			a.sound.changeAudioPosition(a.position.x, a.position.y, a.position.z);
+			a.sound.changeAudioOrientation(a.matrixWorld);
 		}
 
 		// Move AI
@@ -337,6 +349,10 @@ function render() {
 			$('#hurt').fadeIn(75);
 			health -= 10;
 			if (health < 0) health = 0;
+			if (health < 25){	
+				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+			}
+			else createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
@@ -504,6 +520,10 @@ function addAI() {
 	o.lastRandomX = Math.random();
 	o.lastRandomZ = Math.random();
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
+
+	/* add 3d sound */
+	o.sound = new AI_Sound();
+
 	ai.push(o);
 	if(!DEBUG) {
 		o.invisible = true;
