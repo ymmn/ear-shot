@@ -30,8 +30,12 @@ var WIDTH = window.innerWidth,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
 	GOTHIT = false,
-	DEBUG = false,
-	soundLoaded = false;
+	DEBUG = true,
+	soundLoaded = false,
+	manifest = [
+		{id:"death", src:"assets/death.wav"},
+		{id:"hurt", src:"assets/hurt.wav"},
+	];
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
@@ -108,6 +112,7 @@ $(document).ready(function() {
 // Setup
 function init() {
 	playSound();
+	createjs.Sound.registerManifest(manifest);
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
@@ -224,6 +229,9 @@ function render() {
 				scene.remove(a);
 				a.invisible = DEBUG;
 				console.log("DAMAGE");
+				if (a.health > 0) {
+					createjs.Sound.play('hurt').addEventListener("complete", this.stop());
+				}
 				setTimeout(function() {  if(a.health > 0 && a.invisible == DEBUG) { console.log("invisi again"); scene.add(a); a.invisible = !DEBUG; }/*a.material.opacity = 1;*/ },1000);
 				var color = a.material.color, percent = a.health / 100;
 				hit = true;
@@ -261,6 +269,7 @@ function render() {
 			scene.remove(a);
 			kills++;
 			console.log("DED");
+			createjs.Sound.play('death').addEventListener("complete", this.stop());
 			$('#score').html(kills * 100);
 			addAI();
 		}
@@ -309,7 +318,7 @@ function render() {
 			scene.remove(b);
 			$('#hurt').fadeOut(350);
 			GOTHIT = true;
-			setTimeout(function() {GOTHIT = false},1000);
+			setTimeout(function(){GOTHIT = false},1000);
 		}
 
 		/*
@@ -625,5 +634,16 @@ function getRandBetween(lo, hi) {
  return parseInt(Math.floor(Math.random()*(hi-lo+1))+lo, 10);
 }
 
+function PlaySound(soundobj) {
+    var thissound=document.getElementById(soundobj);
+    thissound.play();
+    console.log(thissound);
+    setTimeout(StopSound(soundobj), thissound.duration);
+}
 
+function StopSound(soundobj) {
+    var thissound=document.getElementById(soundobj);
+    thissound.pause();
+    thissound.currentTime = 0;
+}
 
