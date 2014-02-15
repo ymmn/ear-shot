@@ -74,7 +74,7 @@ function init() {
 	scene.add(cam);
 	
 	// Camera moves with mouse, flies around with WASD/arrow keys
-	controls = new t.PointerLockControls(cam);
+	controls = new t.FirstPersonControls(cam);
 	controls.movementSpeed = MOVESPEED;
 	controls.lookSpeed = LOOKSPEED;
 	controls.lookVertical = false; // Temporary solution; play on flat surfaces only
