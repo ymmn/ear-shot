@@ -3,7 +3,7 @@ Ear-Shot
 
 TODO
 
-- [ ] Draw 3d world with one cube
+- [X] Draw 3d world with one cube
 - [ ] Make cube emit looped noise
 - [ ] Make cube noise pan according to position and camera
 - [ ] Get Crosshair to draw
