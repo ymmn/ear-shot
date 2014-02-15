@@ -38,6 +38,7 @@ var WIDTH = window.innerWidth,
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
 		{id:"gunshot", src:"assets/gunshot.wav"},
+		{id:"guncock", src:"assets/guncock.wav"},
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
@@ -161,7 +162,6 @@ function init() {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet();
-			createjs.Sound.play('gunshot').addEventListener("complete", this.stop());
 		}
 	});
 	
@@ -264,11 +264,9 @@ function render() {
 			health -= 10;
 			if (health < 0) {
 				health = 0;
-				alert("deathgrunt");
 				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
 			}
 			else {
-				alert("paingrunt");
 				createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
 			}
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
@@ -618,10 +616,11 @@ function createBullet(obj) {
 		if (ammo <= 0) {
 			if (Date.now() > lastShotFired + 2000)
 				ammo = MAXAMMO;
-				createjs.Sound.play('death').addEventListener("complete", this.stop());
+				createjs.Sound.play('guncock');
 		} else {
 			lastShotFired = Date.now();
 			ammo--;
+			createjs.Sound.play('gunshot');
 			var vector = new t.Vector3(mouse.x, mouse.y, 1);
 			projector.unprojectVector(vector, obj);
 			sphere.ray = new t.Ray(
