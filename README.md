@@ -16,7 +16,7 @@ TODO
 - [ ] Maybe make bullets home in on enemies (maybe)
 - [ ] Bullet fire time, reload time, and ammo (so no spamming shots)
 - [ ] Fix pointerlock controls so they still work if you move off screen
-- [ ] Sound effects (on enemy hit, on enemy death, on firing shot)
+- [/] Sound effects (on enemy hit, on enemy death, on firing shot, on hurt, on footstep, on ambience?)
 - [ ] Reasonable level difficulty progression
 - [ ] Functioning health hud
 - [ ] Make bullets actually fly at crosshair

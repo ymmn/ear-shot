@@ -31,6 +31,7 @@ var WIDTH = window.innerWidth,
 	DAMAGERADIUS = 20,
 	GOTHIT = false,
 	DEBUG = true,
+	MAXDIST = 750,
 	soundLoaded = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
@@ -236,8 +237,20 @@ function render() {
 				scene.remove(a);
 				a.invisible = DEBUG;
 				console.log("DAMAGE");
+				var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
 				if (a.health > 0) {
-					createjs.Sound.play('hurt').addEventListener("complete", this.stop());
+					var hurtSound = createjs.Sound.play('hurt');
+					hurtSound.addEventListener("complete", this.stop());
+					var vol;
+					if (distFromPlayer > MAXDIST) {
+						vol = 0.01;
+					} else if (distFromPlayer < 10) {
+						vol = 1;
+					} else {
+						vol = (MAXDIST - distFromPlayer) / MAXDIST;
+					}
+					hurtSound.setVolume(vol);
+					console.log(distFromPlayer, MAXDIST, hurtSound.volume)
 				}
 				setTimeout(function() {  if(a.health > 0 && a.invisible == DEBUG) { console.log("invisi again"); scene.add(a); a.invisible = !DEBUG; }/*a.material.opacity = 1;*/ },1000);
 				var color = a.material.color, percent = a.health / 100;
@@ -274,13 +287,25 @@ function render() {
 		var a = ai[i];
 		// console.log("I HAVE AI");
 		window.aii = a.position;
+		var distFromPlayer = distance(window.aii.x, window.aii.z, window.camm.x, window.camm.z);
 		if (a.health <= 0) {
 			// console.log("HEALTH LO");
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
+			$('kills').text(kills);
 			console.log("DED");
-			createjs.Sound.play('death').addEventListener("complete", this.stop());
+			var deathSound = createjs.Sound.play('death');
+			deathSound.addEventListener("complete", this.stop());
+			var vol;
+			if (distFromPlayer > MAXDIST) {
+				vol = 0.01;
+			} else if (distFromPlayer < 10) {
+				vol = 1;
+			} else {
+				vol = (MAXDIST - distFromPlayer) / MAXDIST;
+			}
+			deathSound.setVolume(vol);
 			$('#score').html(kills * 100);
 			addAI();
 		}
@@ -319,7 +344,7 @@ function render() {
 			addAI();
 		}
 		// AI Damage
-		if (!GOTHIT && distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z) < DAMAGERADIUS) {
+		if (!GOTHIT && distFromPlayer < DAMAGERADIUS) {
 			$('#hurt').fadeIn(75);
 			health -= 10;
 			if (health < 0) health = 0;
@@ -330,6 +355,7 @@ function render() {
 			$('#hurt').fadeOut(350);
 			GOTHIT = true;
 			setTimeout(function(){GOTHIT = false},1000);
+
 		}
 
 		/*
@@ -388,7 +414,6 @@ function render() {
 // Set up the objects in the world
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
-
 	// Geometry: floor
 	var floor = new t.Mesh(
 			new t.CubeGeometry(units * UNITSIZE, 10, units * UNITSIZE),
@@ -414,6 +439,9 @@ function setupScene() {
 	// 		}
 	// 	}
 	// }
+
+	// Display the HUD: radar, health, score, and credits/directions
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span><br />Score: <span id="score">0</span></p><br />Kills: <span id="kills">0</span></p></div>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -644,17 +672,3 @@ $(window).blur(function() {
 function getRandBetween(lo, hi) {
  return parseInt(Math.floor(Math.random()*(hi-lo+1))+lo, 10);
 }
-
-function PlaySound(soundobj) {
-    var thissound=document.getElementById(soundobj);
-    thissound.play();
-    console.log(thissound);
-    setTimeout(StopSound(soundobj), thissound.duration);
-}
-
-function StopSound(soundobj) {
-    var thissound=document.getElementById(soundobj);
-    thissound.pause();
-    thissound.currentTime = 0;
-}
-
