@@ -66,17 +66,28 @@
       top: 0;
       z-index: 1002;
     }
+    #crosshair {
+       width: 100px;
+       height: 100px;
+       position: absolute;
+       top: 50%;
+       left: 50%;
+       margin-left: -50px;
+       margin-top: -50px;
+       display: none;
+    }
   </style>
   <script src="jquery-1.7.2.min.js"></script>
   <script src="soundcontrols.js"></script>
   <!-- <script src="Pathfinder.js"></script> -->
   <!-- <script src="Three.js"></script> -->
-  <script src="three.new.min.js"></script>
+  <script src="three.min.js"></script>
   <!-- <script src="ColladaLoader.js"></script> -->
-  <script src="Three.FirstPersonControls.js"></script>
+  <!-- <script src="Three.FirstPersonControls.js"></script> -->
   <script src="PointerLockControls.js"></script>
   <script src="main.js"></script>
 </head>
 <body>
+  <img width="100" id="crosshair" src="assets/crosshair.png"></img>
 </body>
 </html>

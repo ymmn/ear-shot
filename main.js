@@ -25,12 +25,13 @@ var WIDTH = window.innerWidth,
 	WALLHEIGHT = UNITSIZE / 3,
 	MOVESPEED = 100,
 	LOOKSPEED = 0.075,
-	BULLETMOVESPEED = MOVESPEED * 20,
+	BULLETMOVESPEED = MOVESPEED * 15,
 	NUMAI = 1,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
 	GOTHIT = false,
-	DEBUG = true;
+	DEBUG = false,
+	soundLoaded = false;
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
@@ -83,7 +84,11 @@ $(document).ready(function() {
 		e.preventDefault();
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
+
 		$(this).fadeOut();
+
+		// show crosshair
+		$("#crosshair").show();
 		init();
 		// setInterval(drawRadar, 1000);
 		animate();
@@ -165,13 +170,15 @@ var time = Date.now();
 // Update and display
 function render() {
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
-	var aispeed = delta * MOVESPEED / 10;
+	var aispeed = delta * 1 *MOVESPEED / 10;
 	var tdelta = Date.now() - time;
 	controls.update(tdelta); // Move camera
 
 	/* change audio based on camera pos and orientation */
-	changeListenerPosition(cam.position.x, cam.position.y, cam.position.z);
-	changeListenerOrientation(cam);
+	if(soundLoaded) {
+		changeListenerPosition(controls.object.position.x, controls.object.position.y, controls.object.position.z);
+		changeListenerOrientation(controls.object);
+	}
 
 	
 	// Rotate the health cube
@@ -180,7 +187,7 @@ function render() {
 
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
-		if (distance(cam.position.x, cam.position.z, healthcube.position.x, healthcube.position.z) < 15 && health != 100) {
+		if (distance(controls.object.position.x, controls.object.position.z, healthcube.position.x, healthcube.position.z) < 15 && health != 100) {
 			health = Math.min(health + 50, 100);
 			$('#health').html(health);
 			lastHealthPickup = Date.now();
@@ -194,7 +201,7 @@ function render() {
 	// Update bullets. Walk backwards through the list so we can remove items.
 	for (var i = bullets.length-1; i >= 0; i--) {
 		var b = bullets[i], p = b.position, d = b.ray.direction;
-		console.log("bullet flyinggg");
+		// console.log("bullet flyinggg");
 		if (checkWallCollision(p)) {
 			bullets.splice(i, 1);
 			scene.remove(b);
@@ -214,18 +221,17 @@ function render() {
 				bullets.splice(i, 1);
 				scene.remove(b);
 				a.health -= PROJECTILEDAMAGE;
-				// a.material.opacity = 0;
-				window.mat = a.mmaterial;
 				scene.remove(a);
 				a.invisible = DEBUG;
-				setTimeout(function() {  if(a.health > 0 && a.invisible) { scene.add(a); a.invisible = !DEBUG; }/*a.material.opacity = 1;*/ },1000);
+				console.log("DAMAGE");
+				setTimeout(function() {  if(a.health > 0 && a.invisible == DEBUG) { console.log("invisi again"); scene.add(a); a.invisible = !DEBUG; }/*a.material.opacity = 1;*/ },1000);
 				var color = a.material.color, percent = a.health / 100;
 				hit = true;
 				break;
 			}
 		}
 		// Bullet hits player
-		if (distance(p.x, p.z, cam.position.x, cam.position.z) < 25 && b.owner != cam) {
+		if (distance(p.x, p.z, controls.object.position.x, controls.object.position.z) < 25 && b.owner != cam) {
 			$('#hurt').fadeIn(75);
 			health -= 10;
 			if (health < 0) health = 0;
@@ -241,14 +247,20 @@ function render() {
 			b.translateZ(speed * d.z);
 		}
 	}
+	window.camm = controls.object.position;
 
 	// Update AI.
+	// console.log(ai.length);
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
+		// console.log("I HAVE AI");
+		window.aii = a.position;
 		if (a.health <= 0) {
+			// console.log("HEALTH LO");
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
+			console.log("DED");
 			$('#score').html(kills * 100);
 			addAI();
 		}
@@ -256,9 +268,10 @@ function render() {
 
 
 		/* update enemy audio based on position and orientation */
-		window.a = a;
-		changeAudioPosition(a.position.x, a.position.y, a.position.z);
-		changeAudioOrientation(a.matrixWorld);
+		if(soundLoaded) {
+			changeAudioPosition(a.position.x, a.position.y, a.position.z);
+			changeAudioOrientation(a.matrixWorld);
+		}
 
 		// Move AI
 		//var r = Math.random();
@@ -272,6 +285,7 @@ function render() {
 		var transZ = -a.position.z + controls.object.position.z;
 		a.translateX(aispeed * transX/100);
 		a.translateZ(aispeed * transZ/100);
+		// console.log(transX);
 		var c = getMapSector(a.position);
 		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
 			a.translateX(-2 * aispeed * a.lastRandomX);
@@ -285,7 +299,7 @@ function render() {
 			addAI();
 		}
 		// AI Damage
-		if (!GOTHIT && distance(a.position.x, a.position.z, cam.position.x, cam.position.z) < DAMAGERADIUS) {
+		if (!GOTHIT && distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z) < DAMAGERADIUS) {
 			$('#hurt').fadeIn(75);
 			health -= 10;
 			if (health < 0) health = 0;
@@ -314,7 +328,7 @@ function render() {
 			a.PathPos++;
 		}
 		*/
-		// var cc = getMapSector(cam.position);
+		// var cc = getMapSector(controls.object.position);
 		// if (Date.now() > a.lastShot + 750 && distance(c.x, c.z, cc.x, cc.z) < 2) {
 		// 	createBullet(a);
 		// 	a.lastShot = Date.now();
@@ -344,8 +358,8 @@ function render() {
 			kills--;
 			if (kills <= 0) kills = 0;
 			$('#score').html(kills * 100);
-			cam.translateX(-cam.position.x);
-			cam.translateZ(-cam.position.z);
+			cam.translateX(-controls.object.position.x);
+			cam.translateZ(-controls.object.position.z);
 			*/
 	// 	});
 	// }
@@ -407,7 +421,7 @@ function setupAI() {
 }
 
 function addAI() {
-	var c = getMapSector(cam.position);
+	var c = getMapSector(controls.object.position);
 	var aiMaterial = new THREE.MeshLambertMaterial( { color: 0xFF0000, transparent: false } ); //= new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
 	var o = new t.Mesh(aiGeo, aiMaterial);
 	do {
@@ -425,7 +439,11 @@ function addAI() {
 	o.lastRandomZ = Math.random();
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
 	ai.push(o);
-	scene.add(o);
+	if(!DEBUG) {
+		o.invisible = true;
+	} else {
+		scene.add(o);
+	}
 }
 
 function getAIpath(a) {
@@ -477,18 +495,19 @@ function getMapSector(v) {
  *
  * @param v
  *   A THREE.Vector3 object representing a point in space.
- *   Passing cam.position is especially useful.
+ *   Passing controls.object.position is especially useful.
  * @returns {Boolean}
  *   true if the vector is inside a wall; false otherwise.
  */
 function checkWallCollision(v) {
 	var c = getMapSector(v);
+	if(map[c.x] === undefined) return true;
 	return map[c.x][c.z] > 0;
 }
 
 // Radar
 function drawRadar() {
-	var c = getMapSector(cam.position), context = document.getElementById('radar').getContext('2d');
+	var c = getMapSector(controls.object.position), context = document.getElementById('radar').getContext('2d');
 	context.font = '10px Helvetica';
 	for (var i = 0; i < mapW; i++) {
 		for (var j = 0, m = map[i].length; j < m; j++) {
@@ -535,21 +554,21 @@ function createBullet(obj) {
 		obj = cam;
 	}
 	var sphere = new t.Mesh(sphereGeo, sphereMaterial);
-	sphere.position.set(obj.position.x, obj.position.y * 0.8, obj.position.z);
+	sphere.position.set(controls.object.position.x, controls.object.position.y * 0.8, controls.object.position.z);
 
 	if (obj instanceof t.Camera) {
 		var vector = new t.Vector3(mouse.x, mouse.y, 1);
 		projector.unprojectVector(vector, obj);
 		sphere.ray = new t.Ray(
 				obj.position,
-				vector.subSelf(obj.position).normalize()
+				vector.sub(obj.position).normalize()
 		);
 	}
 	else {
-		var vector = cam.position.clone();
+		var vector = controls.object.position.clone();
 		sphere.ray = new t.Ray(
 				obj.position,
-				vector.subSelf(obj.position).normalize()
+				vector.sub(obj.position).normalize()
 		);
 	}
 	sphere.owner = obj;
@@ -572,8 +591,9 @@ function loadImage(path) {
 
 function onDocumentMouseMove(e) {
 	e.preventDefault();
-	mouse.x = (e.clientX / WIDTH) * 2 - 1;
-	mouse.y = - (e.clientY / HEIGHT) * 2 + 1;
+	// console.log(mouse.y);
+	mouse.x = 0; //(e.clientX / WIDTH) * 2 - 1;
+	mouse.y = 2.5; //- (e.clientY / HEIGHT) * 2 + 1;
 }
 
 // Handle window resizing

@@ -206,6 +206,26 @@ THREE.PointerLockControls = function ( camera ) {
 		yawObject.translateY( velocity.y ); 
 		yawObject.translateZ( velocity.z );
 
+		if(yawObject.position.x < -(UNITSIZE * mapW/2)) {
+			velocity.x = 0;
+			yawObject.position.x = -(UNITSIZE * mapW/2);
+		}
+
+		if(yawObject.position.z < -(UNITSIZE * mapW/2)) {
+			velocity.z = 0;
+			yawObject.position.z = -(UNITSIZE * mapW/2);
+		}
+
+		if(yawObject.position.z > (UNITSIZE * mapW/2)) {
+			velocity.z = 0;
+			yawObject.position.z = UNITSIZE * mapW /2;
+		}
+
+		if(yawObject.position.x > (UNITSIZE * mapW /2)) {
+			velocity.x = 0;
+			yawObject.position.x = UNITSIZE * mapW /2;
+		}
+
 		// hit the floor
 		if ( yawObject.position.y < 10 ) {
 
