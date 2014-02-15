@@ -6,14 +6,14 @@
 
 var map = [ // 1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
-           [1, 1, 0, 0, 0, 0, 0, 1, 1, 1,], // 1
-           [1, 1, 0, 0, 2, 0, 0, 0, 0, 1,], // 2
-           [1, 0, 0, 0, 0, 2, 0, 0, 0, 1,], // 3
-           [1, 0, 0, 2, 0, 0, 2, 0, 0, 1,], // 4
-           [1, 0, 0, 0, 2, 0, 0, 0, 1, 1,], // 5
-           [1, 1, 1, 0, 0, 0, 0, 1, 1, 1,], // 6
-           [1, 1, 1, 0, 0, 1, 0, 0, 1, 1,], // 7
-           [1, 1, 1, 1, 1, 1, 0, 0, 1, 1,], // 8
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 9
            ], mapW = map.length, mapH = map[0].length;
 
@@ -27,7 +27,9 @@ var WIDTH = window.innerWidth,
 	LOOKSPEED = 0.075,
 	BULLETMOVESPEED = MOVESPEED * 5,
 	NUMAI = 5,
-	PROJECTILEDAMAGE = 20;
+	PROJECTILEDAMAGE = 20,
+	DAMAGERADIUS = 20,
+	GOTHIT = false;
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
 var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100;
@@ -187,7 +189,7 @@ function render() {
 			b.translateZ(speed * d.z);
 		}
 	}
-	
+
 	// Update AI.
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
@@ -218,6 +220,21 @@ function render() {
 			scene.remove(a);
 			addAI();
 		}
+		// AI Damage
+		console.log(Math.floor(distance(a.position.x, a.position.z, cam.position.x, cam.position.z)),!GOTHIT, distance(a.position.x, a.position.z, cam.position.x, cam.position.z) < DAMAGERADIUS)
+		if (!GOTHIT && distance(a.position.x, a.position.z, cam.position.x, cam.position.z) < DAMAGERADIUS) {
+			$('#hurt').fadeIn(75);
+			health -= 10;
+			if (health < 0) health = 0;
+			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
+			$('#health').html(val);
+			bullets.splice(i, 1);
+			scene.remove(b);
+			$('#hurt').fadeOut(350);
+			GOTHIT = true;
+			setTimeout(function() {GOTHIT = false},1000);
+		}
+
 		/*
 		var c = getMapSector(a.position);
 		if (a.pathPos == a.path.length-1) {
@@ -234,11 +251,11 @@ function render() {
 			a.PathPos++;
 		}
 		*/
-		var cc = getMapSector(cam.position);
-		if (Date.now() > a.lastShot + 750 && distance(c.x, c.z, cc.x, cc.z) < 2) {
-			createBullet(a);
-			a.lastShot = Date.now();
-		}
+		// var cc = getMapSector(cam.position);
+		// if (Date.now() > a.lastShot + 750 && distance(c.x, c.z, cc.x, cc.z) < 2) {
+		// 	createBullet(a);
+		// 	a.lastShot = Date.now();
+		// }
 	}
 
 	renderer.render(scene, cam); // Repaint
@@ -281,24 +298,24 @@ function setupScene() {
 	);
 	scene.add(floor);
 	
-	// Geometry: walls
-	var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
-	var materials = [
-	                 new t.MeshLambertMaterial({/*color: 0x00CCAA,*/map: t.ImageUtils.loadTexture('images/wall-1.jpg')}),
-	                 new t.MeshLambertMaterial({/*color: 0xC5EDA0,*/map: t.ImageUtils.loadTexture('images/wall-2.jpg')}),
-	                 new t.MeshLambertMaterial({color: 0xFBEBCD}),
-	                 ];
-	for (var i = 0; i < mapW; i++) {
-		for (var j = 0, m = map[i].length; j < m; j++) {
-			if (map[i][j]) {
-				var wall = new t.Mesh(cube, materials[map[i][j]-1]);
-				wall.position.x = (i - units/2) * UNITSIZE;
-				wall.position.y = WALLHEIGHT/2;
-				wall.position.z = (j - units/2) * UNITSIZE;
-				scene.add(wall);
-			}
-		}
-	}
+	// // Geometry: walls
+	// var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
+	// var materials = [
+	//                  new t.MeshLambertMaterial({/*color: 0x00CCAA,*/map: t.ImageUtils.loadTexture('images/wall-1.jpg')}),
+	//                  new t.MeshLambertMaterial({/*color: 0xC5EDA0,*/map: t.ImageUtils.loadTexture('images/wall-2.jpg')}),
+	//                  new t.MeshLambertMaterial({color: 0xFBEBCD}),
+	//                  ];
+	// for (var i = 0; i < mapW; i++) {
+	// 	for (var j = 0, m = map[i].length; j < m; j++) {
+	// 		if (map[i][j]) {
+	// 			var wall = new t.Mesh(cube, materials[map[i][j]-1]);
+	// 			wall.position.x = (i - units/2) * UNITSIZE;
+	// 			wall.position.y = WALLHEIGHT/2;
+	// 			wall.position.z = (j - units/2) * UNITSIZE;
+	// 			scene.add(wall);
+	// 		}
+	// 	}
+	// }
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -327,7 +344,7 @@ function setupAI() {
 
 function addAI() {
 	var c = getMapSector(cam.position);
-	var aiMaterial = new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
+	var aiMaterial = new t.MeshBasicMaterial({color: 0xEE3333, /*map: t.ImageUtils.loadTexture('images/face.png')*/ });
 	var o = new t.Mesh(aiGeo, aiMaterial);
 	do {
 		var x = getRandBetween(0, mapW-1);
