@@ -8,6 +8,6 @@ TODO
 - [ ] Make cube emit looped noise
 - [ ] Make cube noise pan according to position and camera
 - [ ] Get Crosshair to draw and change controls
-- [ ] Redo AIs
-- [ ] Change scenery to open
+- [X] Redo AIs
+- [X] Change scenery to open
 
