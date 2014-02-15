@@ -4,10 +4,12 @@ var changeListenerOrientation;
 var dbgChangeListenerOrientation;
 
 var audioContext;
+var enemySoundBuffer;
 function AI_Sound() {
 
 	var ctx = audioContext;
 	var that = this;
+
 
 	// Create an object with a sound source and a volume control.
 	var sound = {};
@@ -25,60 +27,71 @@ function AI_Sound() {
 	sound.panner.connect(ctx.destination);
 
 	// Make the sound source loop.
+	var plugBuffer = function(buffer){
+		  sound.buffer = buffer;
 
-	// Load a sound file using an ArrayBuffer XMLHttpRequest.
-	var request = new XMLHttpRequest();
-	request.open("GET", "assets/footsteps.mp3", true);
-	request.responseType = "arraybuffer";
-	request.onload = function(e) {
+		  // Make the sound source use the buffer and start playing it.
+		  sound.source.buffer = sound.buffer;
+		  sound.source.start(ctx.currentTime);
+		  soundLoaded = true;
 
-	  // Create a buffer from the response ArrayBuffer.
-	  var buffer = ctx.createBuffer(this.response, false);
-	  sound.buffer = buffer;
+		  // sound.panner = ctx.createPanner();
+			// Instead of hooking up the volume to the main volume, hook it up to the panner.
+			// sound.volume.connect(sound.panner);
+			// And hook up the panner to the main volume.
+			// sound.panner.connect(mainVolume);
 
-	  // Make the sound source use the buffer and start playing it.
-	  sound.source.buffer = sound.buffer;
-	  sound.source.start(ctx.currentTime);
-	  soundLoaded = true;
+			that.stop = function() {
+				sound.source.stop();
+			};
+			
+			that.changeAudioPosition = function (x, y, z) {
+				// console.log("(" + x + ", " + y + ", " + z + ")");
+				sound.panner.setPosition(x, y, z);
+			};
 
-	  // sound.panner = ctx.createPanner();
-		// Instead of hooking up the volume to the main volume, hook it up to the panner.
-		// sound.volume.connect(sound.panner);
-		// And hook up the panner to the main volume.
-		// sound.panner.connect(mainVolume);
+			that.changeAudioOrientation = function(m) {
+				var vec = new THREE.Vector3(0,0,1);
 
-		that.stop = function() {
-			sound.source.stop();
-		};
-		
-		that.changeAudioPosition = function (x, y, z) {
-			// console.log("(" + x + ", " + y + ", " + z + ")");
-			sound.panner.setPosition(x, y, z);
-		};
+				// Save the translation column and zero it.
+				var mx = m.n14, my = m.n24, mz = m.n34;
+				m.n14 = m.n24 = m.n34 = 0;
 
-		that.changeAudioOrientation = function(m) {
-			var vec = new THREE.Vector3(0,0,1);
+				// Multiply the 0,0,1 vector by the world matrix and normalize the result.
+				vec.applyProjection( m );
+				// m.multiplyVector3(vec);
+				vec.normalize();
 
-			// Save the translation column and zero it.
-			var mx = m.n14, my = m.n24, mz = m.n34;
-			m.n14 = m.n24 = m.n34 = 0;
+				sound.panner.setOrientation(vec.x, vec.y, vec.z);
 
-			// Multiply the 0,0,1 vector by the world matrix and normalize the result.
-			vec.applyProjection( m );
-			// m.multiplyVector3(vec);
-			vec.normalize();
-
-			sound.panner.setOrientation(vec.x, vec.y, vec.z);
-
-			// Restore the translation column.
-			m.n14 = mx;
-			m.n24 = my; 
-			m.n34 = mz;
-		};
-
+				// Restore the translation column.
+				m.n14 = mx;
+				m.n24 = my; 
+				m.n34 = mz;
+			};
 
 	};
-	request.send();
+
+	// Load a sound file using an ArrayBuffer XMLHttpRequest.
+	if(enemySoundBuffer === undefined){
+		var request = new XMLHttpRequest();
+		request.open("GET", "assets/footsteps.mp3", true);
+		request.responseType = "arraybuffer";
+		request.onload = function(e) {
+
+		  // Create a buffer from the response ArrayBuffer.
+		  var buffer = ctx.createBuffer(this.response, false);
+		  enemySoundBuffer = buffer;
+
+		  plugBuffer(buffer);
+
+
+
+		};
+		request.send();
+	} else {
+		plugBuffer(enemySoundBuffer);
+	}
 }
 
 

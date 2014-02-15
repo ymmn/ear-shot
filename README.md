@@ -10,6 +10,7 @@ TODO
 - [X] Fix shooting
 - [X] Fix positioning issues and collision detection and such
 - [X] Get noise to scale better based on distance
+- [ ] Bug: enemies don't toggle invisibility correctly
 - [ ] Three towers to defend or something
 - [ ] Add 3d models instead of boxes
 - [X] More than one enemy support (sound-wise)
