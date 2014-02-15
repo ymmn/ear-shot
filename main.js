@@ -29,6 +29,7 @@ var WIDTH = window.innerWidth,
 	NUMAI = 3,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
+	MAXAMMO = 3;
 	GOTHIT = false,
 	DEBUG = true,
 	MAXDIST = 750,
@@ -37,6 +38,7 @@ var WIDTH = window.innerWidth,
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
 		{id:"gunshot", src:"assets/gunshot.wav"},
+		{id:"guncock", src:"assets/guncock.wav"},
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
@@ -44,7 +46,7 @@ var WIDTH = window.innerWidth,
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
-var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100;
+var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXAMMO, lastShotFired = 0;
 var healthCube, lastHealthPickup = 0;
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
@@ -160,7 +162,6 @@ function init() {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet();
-			createjs.Sound.play('gunshot');
 		}
 	});
 	
@@ -263,11 +264,9 @@ function render() {
 			health -= 10;
 			if (health < 0) {
 				health = 0;
-				alert("deathgrunt");
 				createjs.Sound.play('deathgrunt');
 			}
 			else {
-				alert("paingrunt");
 				createjs.Sound.play('paingrunt');
 			}
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
@@ -643,12 +642,25 @@ function createBullet(obj) {
 	sphere.position.set(controls.object.position.x, controls.object.position.y * 0.8, controls.object.position.z);
 
 	if (obj instanceof t.Camera) {
-		var vector = new t.Vector3(mouse.x, mouse.y, 1);
-		projector.unprojectVector(vector, obj);
-		sphere.ray = new t.Ray(
-				obj.position,
-				vector.sub(obj.position).normalize()
-		);
+		if (ammo <= 0) {
+			if (Date.now() > lastShotFired + 2000)
+				ammo = MAXAMMO;
+				createjs.Sound.play('guncock');
+		} else {
+			lastShotFired = Date.now();
+			ammo--;
+			createjs.Sound.play('gunshot');
+			var vector = new t.Vector3(mouse.x, mouse.y, 1);
+			projector.unprojectVector(vector, obj);
+			sphere.ray = new t.Ray(
+					obj.position,
+					vector.sub(obj.position).normalize()
+			);
+			sphere.owner = obj;
+			
+			bullets.push(sphere);
+			scene.add(sphere);
+		}
 	}
 	else {
 		var vector = controls.object.position.clone();
@@ -656,11 +668,11 @@ function createBullet(obj) {
 				obj.position,
 				vector.sub(obj.position).normalize()
 		);
+		sphere.owner = obj;
+		
+		bullets.push(sphere);
+		scene.add(sphere);
 	}
-	sphere.owner = obj;
-	
-	bullets.push(sphere);
-	scene.add(sphere);
 	
 	return sphere;
 }
