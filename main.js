@@ -121,7 +121,7 @@ function animate() {
 // Update and display
 function render() {
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
-	var aispeed = delta * MOVESPEED;
+	var aispeed = delta * MOVESPEED / 10;
 	controls.update(delta); // Move camera
 	
 	// Rotate the health cube
@@ -201,13 +201,17 @@ function render() {
 			addAI();
 		}
 		// Move AI
-		var r = Math.random();
-		if (r > 0.995) {
-			a.lastRandomX = Math.random() * 2 - 1;
-			a.lastRandomZ = Math.random() * 2 - 1;
-		}
-		a.translateX(aispeed * a.lastRandomX);
-		a.translateZ(aispeed * a.lastRandomZ);
+		//var r = Math.random();
+		//if (r > 0.995) {
+		//	a.lastRandomX = Math.random() * 2 - 1;
+		//	a.lastRandomZ = Math.random() * 2 - 1;
+		//}
+		//a.translateX(aispeed * a.lastRandomX);
+		//a.translateZ(aispeed * a.lastRandomZ);
+		var transX = -a.position.x + controls.object.position.x;
+		var transZ = -a.position.z + controls.object.position.z;
+		a.translateX(aispeed * transX/100);
+		a.translateZ(aispeed * transZ/100);
 		var c = getMapSector(a.position);
 		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
 			a.translateX(-2 * aispeed * a.lastRandomX);
