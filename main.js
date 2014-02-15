@@ -6,14 +6,14 @@
 
 var map = [ // 1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
-           [1, 1, 0, 0, 0, 0, 0, 1, 1, 1,], // 1
-           [1, 1, 0, 0, 2, 0, 0, 0, 0, 1,], // 2
-           [1, 0, 0, 0, 0, 2, 0, 0, 0, 1,], // 3
-           [1, 0, 0, 2, 0, 0, 2, 0, 0, 1,], // 4
-           [1, 0, 0, 0, 2, 0, 0, 0, 1, 1,], // 5
-           [1, 1, 1, 0, 0, 0, 0, 1, 1, 1,], // 6
-           [1, 1, 1, 0, 0, 1, 0, 0, 1, 1,], // 7
-           [1, 1, 1, 1, 1, 1, 0, 0, 1, 1,], // 8
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 9
            ], mapW = map.length, mapH = map[0].length;
 
@@ -28,6 +28,9 @@ var WIDTH = window.innerWidth,
 	BULLETMOVESPEED = MOVESPEED * 20,
 	NUMAI = 1,
 	PROJECTILEDAMAGE = 50;
+	DAMAGERADIUS = 20,
+	GOTHIT = false;
+
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
 var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100;
@@ -121,7 +124,7 @@ function animate() {
 // Update and display
 function render() {
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
-	var aispeed = delta * MOVESPEED;
+	var aispeed = delta * MOVESPEED / 10;
 	controls.update(delta); // Move camera
 
 	/* change audio based on camera pos and orientation */
@@ -196,7 +199,7 @@ function render() {
 			b.translateZ(speed * d.z);
 		}
 	}
-	
+
 	// Update AI.
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
@@ -223,27 +226,42 @@ function render() {
 		changeAudioOrientation(a.matrixWorld);
 
 		// Move AI
-		// var r = Math.random();
-		// if (r > 0.995) {
-		// 	a.lastRandomX = Math.random() * 2 - 1;
-		// 	a.lastRandomZ = Math.random() * 2 - 1;
-		// }
-		// a.translateX(aispeed * a.lastRandomX);
-		// a.translateZ(aispeed * a.lastRandomZ);
-		// var c = getMapSector(a.position);
-		// if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
-		// 	a.translateX(-2 * aispeed * a.lastRandomX);
-		// 	a.translateZ(-2 * aispeed * a.lastRandomZ);
-		// 	a.lastRandomX = Math.random() * 2 - 1;
-		// 	a.lastRandomZ = Math.random() * 2 - 1;
-		// }
-		// if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
-		// 	ai.splice(i, 1);
-		// 	scene.remove(a);
-		// 	addAI();
-		// }
-
-
+		//var r = Math.random();
+		//if (r > 0.995) {
+		//	a.lastRandomX = Math.random() * 2 - 1;
+		//	a.lastRandomZ = Math.random() * 2 - 1;
+		//}
+		//a.translateX(aispeed * a.lastRandomX);
+		//a.translateZ(aispeed * a.lastRandomZ);
+		var transX = -a.position.x + controls.object.position.x;
+		var transZ = -a.position.z + controls.object.position.z;
+		a.translateX(aispeed * transX/100);
+		a.translateZ(aispeed * transZ/100);
+		var c = getMapSector(a.position);
+		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
+			a.translateX(-2 * aispeed * a.lastRandomX);
+			a.translateZ(-2 * aispeed * a.lastRandomZ);
+			a.lastRandomX = Math.random() * 2 - 1;
+			a.lastRandomZ = Math.random() * 2 - 1;
+		}
+		if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
+			ai.splice(i, 1);
+			scene.remove(a);
+			addAI();
+		}
+		// AI Damage
+		if (!GOTHIT && distance(a.position.x, a.position.z, cam.position.x, cam.position.z) < DAMAGERADIUS) {
+			$('#hurt').fadeIn(75);
+			health -= 10;
+			if (health < 0) health = 0;
+			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
+			$('#health').html(val);
+			bullets.splice(i, 1);
+			scene.remove(b);
+			$('#hurt').fadeOut(350);
+			GOTHIT = true;
+			setTimeout(function() {GOTHIT = false},1000);
+		}
 
 		/*
 		var c = getMapSector(a.position);
@@ -308,24 +326,24 @@ function setupScene() {
 	);
 	scene.add(floor);
 	
-	// Geometry: walls
-	var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
-	var materials = [
-	                 new t.MeshLambertMaterial({/*color: 0x00CCAA,*/map: t.ImageUtils.loadTexture('images/wall-1.jpg')}),
-	                 new t.MeshLambertMaterial({/*color: 0xC5EDA0,*/map: t.ImageUtils.loadTexture('images/wall-2.jpg')}),
-	                 new t.MeshLambertMaterial({color: 0xFBEBCD}),
-	                 ];
-	for (var i = 0; i < mapW; i++) {
-		for (var j = 0, m = map[i].length; j < m; j++) {
-			if (map[i][j]) {
-				var wall = new t.Mesh(cube, materials[map[i][j]-1]);
-				wall.position.x = (i - units/2) * UNITSIZE;
-				wall.position.y = WALLHEIGHT/2;
-				wall.position.z = (j - units/2) * UNITSIZE;
-				scene.add(wall);
-			}
-		}
-	}
+	// // Geometry: walls
+	// var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
+	// var materials = [
+	//                  new t.MeshLambertMaterial({/*color: 0x00CCAA,*/map: t.ImageUtils.loadTexture('images/wall-1.jpg')}),
+	//                  new t.MeshLambertMaterial({/*color: 0xC5EDA0,*/map: t.ImageUtils.loadTexture('images/wall-2.jpg')}),
+	//                  new t.MeshLambertMaterial({color: 0xFBEBCD}),
+	//                  ];
+	// for (var i = 0; i < mapW; i++) {
+	// 	for (var j = 0, m = map[i].length; j < m; j++) {
+	// 		if (map[i][j]) {
+	// 			var wall = new t.Mesh(cube, materials[map[i][j]-1]);
+	// 			wall.position.x = (i - units/2) * UNITSIZE;
+	// 			wall.position.y = WALLHEIGHT/2;
+	// 			wall.position.z = (j - units/2) * UNITSIZE;
+	// 			scene.add(wall);
+	// 		}
+	// 	}
+	// }
 	
 	// Health cube
 	healthcube = new t.Mesh(
