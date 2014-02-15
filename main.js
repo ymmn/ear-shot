@@ -30,7 +30,7 @@ var WIDTH = window.innerWidth,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
 	GOTHIT = false,
-	DEBUG = true,
+	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
 	manifest = [
@@ -420,11 +420,40 @@ function render() {
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
 	// Geometry: floor
+	var floorTex = t.ImageUtils.loadTexture('images/floor-forest.jpg');
+	floorTex.wrapS = t.RepeatWrapping;
+	floorTex.wrapT = t.RepeatWrapping;
+	var floorMesh = new t.MeshBasicMaterial({map: floorTex});
+	// floorTex = new t.MeshLambertMaterial({color: 0xABCABC})
 	var floor = new t.Mesh(
 			new t.CubeGeometry(units * UNITSIZE, 10, units * UNITSIZE),
-			new t.MeshLambertMaterial({color: 0xEDCBA0,/*map: t.ImageUtils.loadTexture('images/floor-1.jpg')*/})
+			floorMesh
 	);
+	console.log(floorTex, floor)
 	scene.add(floor);
+	for (var i = 0; i < mapW-1; i++) {
+		for (var j = 0; j < mapH-1; j++) {
+			if (Math.random() > 0.75) {
+				var tree = new t.Mesh(
+					new t.CylinderGeometry(20, 20, 250, 8, 1, false), // top rad, bottom rad, height, vert faces, horiz faces, capped ends
+					new t.MeshLambertMaterial({color: 0x6F4242})
+				);
+				var leaves = new t.Mesh(
+					new t.SphereGeometry(100),
+					new t.MeshLambertMaterial({color: 0x266A2E})
+				);
+				var x = getRandBetween(0, UNITSIZE);
+				var z = getRandBetween(0, UNITSIZE);
+				// aiMaterial.wireframe = true;
+				x += (i-mapW/2) * UNITSIZE;
+				z += (j-mapH/2) * UNITSIZE;
+				tree.position.set(x, 125, z);
+				leaves.position.set(x, 250, z);
+			}
+			scene.add(tree);
+			scene.add(leaves);
+		}
+	}
 	
 	// // Geometry: walls
 	// var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
