@@ -12,7 +12,7 @@ TODO
 - [X] Get noise to scale better based on distance
 - [ ] Three towers to defend or something
 - [ ] Add 3d models instead of boxes
-- [ ] More than one enemy support (sound-wise)
+- [X] More than one enemy support (sound-wise)
 - [ ] Maybe make bullets home in on enemies (maybe)
 - [ ] Bullet fire time, reload time, and ammo (so no spamming shots)
 - [ ] Fix pointerlock controls so they still work if you move off screen
