@@ -25,9 +25,9 @@ var WIDTH = window.innerWidth,
 	WALLHEIGHT = UNITSIZE / 3,
 	MOVESPEED = 100,
 	LOOKSPEED = 0.075,
-	BULLETMOVESPEED = MOVESPEED * 5,
-	NUMAI = 5,
-	PROJECTILEDAMAGE = 20;
+	BULLETMOVESPEED = MOVESPEED * 20,
+	NUMAI = 1,
+	PROJECTILEDAMAGE = 50;
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
 var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100;
@@ -59,8 +59,10 @@ $(document).ready(function() {
 	*/
 });
 
+
 // Setup
 function init() {
+	playSound();
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
@@ -121,10 +123,16 @@ function render() {
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
 	var aispeed = delta * MOVESPEED;
 	controls.update(delta); // Move camera
+
+	/* change audio based on camera pos and orientation */
+	changeListenerPosition(cam.position.x, cam.position.y, cam.position.z);
+	changeListenerOrientation(cam);
+
 	
 	// Rotate the health cube
 	healthcube.rotation.x += 0.004
 	healthcube.rotation.y += 0.008;
+
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
 		if (distance(cam.position.x, cam.position.z, healthcube.position.x, healthcube.position.z) < 15 && health != 100) {
@@ -161,10 +169,11 @@ function render() {
 				scene.remove(b);
 				a.health -= PROJECTILEDAMAGE;
 				var color = a.material.color, percent = a.health / 100;
+				// a.material.transparent = true;
 				a.material.color.setRGB(
-						percent * color.r,
-						percent * color.g,
-						percent * color.b
+						0,
+						100,
+						0
 				);
 				hit = true;
 				break;
@@ -198,26 +207,44 @@ function render() {
 			$('#score').html(kills * 100);
 			addAI();
 		}
+
+
+		// change AI color back to invisible
+		var col = a.material.color;
+		col.setRGB(
+			col.r + 0.5,
+			col.g - 0.5,
+			0
+		);
+
+		/* update enemy audio based on position and orientation */
+		window.a = a;
+		changeAudioPosition(a.position.x, a.position.y, a.position.z);
+		changeAudioOrientation(a.matrixWorld);
+
 		// Move AI
-		var r = Math.random();
-		if (r > 0.995) {
-			a.lastRandomX = Math.random() * 2 - 1;
-			a.lastRandomZ = Math.random() * 2 - 1;
-		}
-		a.translateX(aispeed * a.lastRandomX);
-		a.translateZ(aispeed * a.lastRandomZ);
-		var c = getMapSector(a.position);
-		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
-			a.translateX(-2 * aispeed * a.lastRandomX);
-			a.translateZ(-2 * aispeed * a.lastRandomZ);
-			a.lastRandomX = Math.random() * 2 - 1;
-			a.lastRandomZ = Math.random() * 2 - 1;
-		}
-		if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
-			ai.splice(i, 1);
-			scene.remove(a);
-			addAI();
-		}
+		// var r = Math.random();
+		// if (r > 0.995) {
+		// 	a.lastRandomX = Math.random() * 2 - 1;
+		// 	a.lastRandomZ = Math.random() * 2 - 1;
+		// }
+		// a.translateX(aispeed * a.lastRandomX);
+		// a.translateZ(aispeed * a.lastRandomZ);
+		// var c = getMapSector(a.position);
+		// if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
+		// 	a.translateX(-2 * aispeed * a.lastRandomX);
+		// 	a.translateZ(-2 * aispeed * a.lastRandomZ);
+		// 	a.lastRandomX = Math.random() * 2 - 1;
+		// 	a.lastRandomZ = Math.random() * 2 - 1;
+		// }
+		// if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
+		// 	ai.splice(i, 1);
+		// 	scene.remove(a);
+		// 	addAI();
+		// }
+
+
+
 		/*
 		var c = getMapSector(a.position);
 		if (a.pathPos == a.path.length-1) {
@@ -234,24 +261,24 @@ function render() {
 			a.PathPos++;
 		}
 		*/
-		var cc = getMapSector(cam.position);
-		if (Date.now() > a.lastShot + 750 && distance(c.x, c.z, cc.x, cc.z) < 2) {
-			createBullet(a);
-			a.lastShot = Date.now();
-		}
+		// var cc = getMapSector(cam.position);
+		// if (Date.now() > a.lastShot + 750 && distance(c.x, c.z, cc.x, cc.z) < 2) {
+		// 	createBullet(a);
+		// 	a.lastShot = Date.now();
+		// }
 	}
 
 	renderer.render(scene, cam); // Repaint
 	
 	// Death
-	if (health <= 0) {
-		runAnim = false;
-		$(renderer.domElement).fadeOut();
-		$('#radar, #hud, #credits').fadeOut();
-		$('#intro').fadeIn();
-		$('#intro').html('Ouch! Click to restart...');
-		$('#intro').one('click', function() {
-			location = location;
+	// if (health <= 0) {
+	// 	runAnim = false;
+	// 	$(renderer.domElement).fadeOut();
+	// 	$('#radar, #hud, #credits').fadeOut();
+	// 	$('#intro').fadeIn();
+	// 	$('#intro').html('Ouch! Click to restart...');
+	// 	$('#intro').one('click', function() {
+	// 		location = location;
 			/*
 			$(renderer.domElement).fadeIn();
 			$('#radar, #hud, #credits').fadeIn();
@@ -266,8 +293,8 @@ function render() {
 			cam.translateX(-cam.position.x);
 			cam.translateZ(-cam.position.z);
 			*/
-		});
-	}
+	// 	});
+	// }
 }
 
 // Set up the objects in the world
@@ -327,7 +354,7 @@ function setupAI() {
 
 function addAI() {
 	var c = getMapSector(cam.position);
-	var aiMaterial = new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
+	var aiMaterial = new THREE.MeshLambertMaterial( { color: 0xFF0000, transparent: false } ); //= new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
 	var o = new t.Mesh(aiGeo, aiMaterial);
 	do {
 		var x = getRandBetween(0, mapW-1);
