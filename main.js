@@ -29,14 +29,16 @@ var WIDTH = window.innerWidth,
 	NUMAI = 3,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
+	MAXAMMO = 3;
 	GOTHIT = false,
-	DEBUG = false,
+	DEBUG = true,
 	MAXDIST = 750,
 	soundLoaded = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
 		{id:"gunshot", src:"assets/gunshot.wav"},
+		{id:"guncock", src:"assets/guncock.wav"},
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
@@ -44,7 +46,7 @@ var WIDTH = window.innerWidth,
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
-var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100;
+var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXAMMO, lastShotFired = 0;
 var healthCube, lastHealthPickup = 0;
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
@@ -160,7 +162,6 @@ function init() {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
 			createBullet();
-			createjs.Sound.play('gunshot').addEventListener("complete", this.stop());
 		}
 	});
 	
@@ -202,7 +203,7 @@ function render() {
 			health = Math.min(health + 50, 100);
 			$('#health').html(health);
 			lastHealthPickup = Date.now();
-			createjs.Sound.play('healthpack').addEventListener("complete", this.stop());
+			createjs.Sound.play('healthpack');
 
 		}
 		healthcube.material.wireframe = false;
@@ -263,12 +264,10 @@ function render() {
 			health -= 10;
 			if (health < 0) {
 				health = 0;
-				alert("deathgrunt");
-				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+				createjs.Sound.play('deathgrunt');
 			}
 			else {
-				alert("paingrunt");
-				createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
+				createjs.Sound.play('paingrunt');
 			}
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
@@ -294,7 +293,7 @@ function render() {
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
-			$('kills').text(kills);
+			$('#kills').html(kills);
 			/* stop footsteps */
 			a.sound.stop();
 			var deathSound = createjs.Sound.play('death');
@@ -350,9 +349,9 @@ function render() {
 			health -= 10;
 			if (health < 0) health = 0;
 			if (health < 25){	
-				createjs.Sound.play('deathgrunt').addEventListener("complete", this.stop());
+				createjs.Sound.play('deathgrunt');
 			}
-			else createjs.Sound.play('paingrunt').addEventListener("complete", this.stop());
+			else createjs.Sound.play('paingrunt');
 			val = health < 25 ? '<span style="color: darkRed">' + health + '</span>' : health;
 			$('#health').html(val);
 			bullets.splice(i, 1);
@@ -475,7 +474,7 @@ function setupScene() {
 	// }
 
 	// Display the HUD: radar, health, score, and credits/directions
-	$('body').append('<div id="hud"><p>Health: <span id="health">100</span><br />Score: <span id="score">0</span></p><br />Kills: <span id="kills">0</span></p></div>');
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p></div>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -643,12 +642,25 @@ function createBullet(obj) {
 	sphere.position.set(controls.object.position.x, controls.object.position.y * 0.8, controls.object.position.z);
 
 	if (obj instanceof t.Camera) {
-		var vector = new t.Vector3(mouse.x, mouse.y, 1);
-		projector.unprojectVector(vector, obj);
-		sphere.ray = new t.Ray(
-				obj.position,
-				vector.sub(obj.position).normalize()
-		);
+		if (ammo <= 0) {
+			if (Date.now() > lastShotFired + 2000)
+				ammo = MAXAMMO;
+				createjs.Sound.play('guncock');
+		} else {
+			lastShotFired = Date.now();
+			ammo--;
+			createjs.Sound.play('gunshot');
+			var vector = new t.Vector3(mouse.x, mouse.y, 1);
+			projector.unprojectVector(vector, obj);
+			sphere.ray = new t.Ray(
+					obj.position,
+					vector.sub(obj.position).normalize()
+			);
+			sphere.owner = obj;
+			
+			bullets.push(sphere);
+			scene.add(sphere);
+		}
 	}
 	else {
 		var vector = controls.object.position.clone();
@@ -656,11 +668,11 @@ function createBullet(obj) {
 				obj.position,
 				vector.sub(obj.position).normalize()
 		);
+		sphere.owner = obj;
+		
+		bullets.push(sphere);
+		scene.add(sphere);
 	}
-	sphere.owner = obj;
-	
-	bullets.push(sphere);
-	scene.add(sphere);
 	
 	return sphere;
 }
