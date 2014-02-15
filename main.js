@@ -294,7 +294,7 @@ function render() {
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
-			$('kills').text(kills);
+			$('#kills').html(kills);
 			/* stop footsteps */
 			a.sound.stop();
 			var deathSound = createjs.Sound.play('death');
@@ -429,7 +429,7 @@ function setupScene() {
 			new t.CubeGeometry(units * UNITSIZE, 10, units * UNITSIZE),
 			floorMesh
 	);
-	console.log(floorTex, floor)
+	// console.log(floorTex, floor)
 	scene.add(floor);
 	for (var i = 0; i < mapW-1; i++) {
 		for (var j = 0; j < mapH-1; j++) {
@@ -475,7 +475,7 @@ function setupScene() {
 	// }
 
 	// Display the HUD: radar, health, score, and credits/directions
-	$('body').append('<div id="hud"><p>Health: <span id="health">100</span><br />Score: <span id="score">0</span></p><br />Kills: <span id="kills">0</span></p></div>');
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p></div>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
