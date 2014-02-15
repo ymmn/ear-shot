@@ -22,6 +22,8 @@ TODO
 - [ ] Reasonable level difficulty progression
 - [ ] Functioning health hud
 - [ ] Make bullets actually fly at crosshair
+- [ ] Add recoil
+- [ ] Fix shooting at edge of level
 - [X] Make cube emit looped noise
 - [X] Make cube noise pan according to position and camera
 - [X] Change controls
