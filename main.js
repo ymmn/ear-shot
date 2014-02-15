@@ -29,7 +29,8 @@ var WIDTH = window.innerWidth,
 	NUMAI = 1,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
-	GOTHIT = false;
+	GOTHIT = false,
+	DEBUG = true;
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
@@ -40,15 +41,51 @@ var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
 	allowDiagonal: true,
 }), grid = new PF.Grid(mapW, mapH, map);
 */
+function requestPointerLockPls(){
+
+	// Ask the browser to lock the pointer
+	var element = document.body;
+	element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
+
+	if ( /Firefox/i.test( navigator.userAgent ) ) {
+
+		var fullscreenchange = function ( event ) {
+
+			if ( document.fullscreenElement === element || document.mozFullscreenElement === element || document.mozFullScreenElement === element ) {
+
+				document.removeEventListener( 'fullscreenchange', fullscreenchange );
+				document.removeEventListener( 'mozfullscreenchange', fullscreenchange );
+
+				element.requestPointerLock();
+			}
+
+		}
+
+		document.addEventListener( 'fullscreenchange', fullscreenchange, false );
+		document.addEventListener( 'mozfullscreenchange', fullscreenchange, false );
+
+		element.requestFullscreen = element.requestFullscreen || element.mozRequestFullscreen || element.mozRequestFullScreen || element.webkitRequestFullscreen;
+
+		element.requestFullscreen();
+
+	} else {
+
+		element.requestPointerLock();
+
+	}
+
+}
 
 // Initialize and run on document ready
 $(document).ready(function() {
 	$('body').append('<div id="intro">Click to start</div>');
 	$('#intro').css({width: WIDTH, height: HEIGHT}).one('click', function(e) {
 		e.preventDefault();
+		// Ask the browser to lock the pointer
+		requestPointerLockPls();
 		$(this).fadeOut();
 		init();
-		setInterval(drawRadar, 1000);
+		// setInterval(drawRadar, 1000);
 		animate();
 	});
 	/*
@@ -74,14 +111,17 @@ function init() {
 	// Set up camera
 	cam = new t.PerspectiveCamera(60, ASPECT, 1, 10000); // FOV, aspect, near, far
 	cam.position.y = UNITSIZE * .2;
-	scene.add(cam);
+	controls = new THREE.PointerLockControls( cam );
+	controls.enabled = true;
+	scene.add( controls.object );
+	// scene.add( cam );
 	
 	// Camera moves with mouse, flies around with WASD/arrow keys
-	controls = new t.FirstPersonControls(cam);
-	controls.movementSpeed = MOVESPEED;
-	controls.lookSpeed = LOOKSPEED;
-	controls.lookVertical = false; // Temporary solution; play on flat surfaces only
-	controls.noFly = true;
+	// controls = new t.FirstPersonControls(cam);
+	// controls.movementSpeed = MOVESPEED;
+	// controls.lookSpeed = LOOKSPEED;
+	// controls.lookVertical = false; // Temporary solution; play on flat surfaces only
+	// controls.noFly = true;
 
 	// World objects
 	setupScene();
@@ -121,11 +161,13 @@ function animate() {
 	render();
 }
 
+var time = Date.now();
 // Update and display
 function render() {
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
 	var aispeed = delta * MOVESPEED / 10;
-	controls.update(delta); // Move camera
+	var tdelta = Date.now() - time;
+	controls.update(tdelta); // Move camera
 
 	/* change audio based on camera pos and orientation */
 	changeListenerPosition(cam.position.x, cam.position.y, cam.position.z);
@@ -152,6 +194,7 @@ function render() {
 	// Update bullets. Walk backwards through the list so we can remove items.
 	for (var i = bullets.length-1; i >= 0; i--) {
 		var b = bullets[i], p = b.position, d = b.ray.direction;
+		console.log("bullet flyinggg");
 		if (checkWallCollision(p)) {
 			bullets.splice(i, 1);
 			scene.remove(b);
@@ -171,13 +214,12 @@ function render() {
 				bullets.splice(i, 1);
 				scene.remove(b);
 				a.health -= PROJECTILEDAMAGE;
+				// a.material.opacity = 0;
+				window.mat = a.mmaterial;
+				scene.remove(a);
+				a.invisible = DEBUG;
+				setTimeout(function() {  if(a.health > 0 && a.invisible) { scene.add(a); a.invisible = !DEBUG; }/*a.material.opacity = 1;*/ },1000);
 				var color = a.material.color, percent = a.health / 100;
-				// a.material.transparent = true;
-				a.material.color.setRGB(
-						0,
-						100,
-						0
-				);
 				hit = true;
 				break;
 			}
@@ -212,13 +254,6 @@ function render() {
 		}
 
 
-		// change AI color back to invisible
-		var col = a.material.color;
-		col.setRGB(
-			col.r + 0.5,
-			col.g - 0.5,
-			0
-		);
 
 		/* update enemy audio based on position and orientation */
 		window.a = a;
@@ -287,6 +322,7 @@ function render() {
 	}
 
 	renderer.render(scene, cam); // Repaint
+	time = Date.now();
 	
 	// Death
 	// if (health <= 0) {
@@ -378,6 +414,7 @@ function addAI() {
 		var x = getRandBetween(0, mapW-1);
 		var z = getRandBetween(0, mapH-1);
 	} while (map[x][z] > 0 || (x == c.x && z == c.z));
+	// aiMaterial.wireframe = true;
 	x = Math.floor(x - mapW/2) * UNITSIZE;
 	z = Math.floor(z - mapW/2) * UNITSIZE;
 	o.position.set(x, UNITSIZE * 0.15, z);

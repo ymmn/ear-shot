@@ -30,6 +30,9 @@ function playSound() {
     sound.panner = ctx.createPanner();
 	sound.volume = ctx.createGain();
 
+	console.log("VAL IS " + sound.volume.gain.value);
+	sound.volume.gain.value = 20;
+
 	// Connect the sound source to the volume control.
 	sound.source.connect(sound.volume);
 	// Hook up the sound volume control to the main volume.

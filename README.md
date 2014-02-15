@@ -7,9 +7,10 @@ TODO
 - [X] Redo AIs
 - [X] Change scenery to open
 - [X] Change damage from bullets to within radius
-- [ ] Redo collision detection
-- [ ] Get noise to scale better based on distance
+- [ ] Fix positioning issues and collision detection and such
+- [X] Get noise to scale better based on distance
+- [ ] More than one enemy support
 - [X] Make cube emit looped noise
 - [X] Make cube noise pan according to position and camera
-- [ ] Get Crosshair to draw and change controls
-
+- [ ] Change controls
+- [ ] Draw Crosshair
