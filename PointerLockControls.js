@@ -260,10 +260,12 @@ THREE.PointerLockControls = function ( camera ) {
 		if ( isOnObject === true ) {
 			velocity.y = Math.max( 0, velocity.y );
 		}
-
-		yawObject.translateX( velocity.x );
-		yawObject.translateY( velocity.y ); 
-		yawObject.translateZ( velocity.z );
+		
+		if (!checkTowerCollision(new t.Vector3(3*velocity.x, 3*velocity.y, 3*velocity.z).add(this.object.position), false) ) {
+			yawObject.translateX( velocity.x );
+			yawObject.translateY( velocity.y ); 
+			yawObject.translateZ( velocity.z );
+		}
 
 		if(yawObject.position.x < -(UNITSIZE * (mapW/2 - 1))) {
 			velocity.x = 0;

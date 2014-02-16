@@ -539,13 +539,14 @@ function render() {
 				closestTarget = towers[k];
 			}
 		}
+		
 		var playerDist = Math.abs(controls.object.position.x - a.position.x) + Math.abs(controls.object.position.z - a.position.z);
-		if (playerDist < minDist)
+		if (playerDist < minDist || closestTarget == null)
 			closestTarget = controls.object;
 
 		var transX = closestTarget.position.x - a.position.x;
 		var transZ = closestTarget.position.z - a.position.z;
-		if (!checkTowerCollision(a.position) || closestTarget == controls.object) {
+		if (!checkTowerCollision(a.position, true) || closestTarget == controls.object) {
 			a.translateX(aispeed * transX/100);
 			a.translateZ(aispeed * transZ/100);
 		}
@@ -843,14 +844,21 @@ function checkWallCollision(v) {
 	return map[c.x][c.z] == 1;
 }
 
-function checkTowerCollision(v) {
+function checkTowerCollision(v, isEnemy) {
 	for (var i = 0; i < towers.length; i++) {
 			var dist = Math.abs(v.x - towers[i].position.x) + Math.abs(v.z - towers[i].position.z);
 			if (dist < 150) {
-				if (towers[i].gotHit == false) {
-					towers[i].health -= 1;
+				if (towers[i].gotHit == false && isEnemy == true) {
+					towers[i].health -= 50;
 					towers[i].gotHit = true;
-					setTimeout(function(){towers[i].gotHit = false}, 1000);
+					setTimeout(function(){
+						if (towers[i] != null)
+							towers[i].gotHit = false;
+					}, 1000);
+					if (towers[i].health <= 0) {
+						scene.remove(towers[i]);
+						towers.splice(i, 1);
+					}
 				}
 				return true;
 			}
