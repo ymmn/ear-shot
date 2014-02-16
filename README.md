@@ -23,10 +23,12 @@ TODO
 - [ ] Three towers to defend or something
 - [ ] Add 3d models instead of boxes
 - [ ] Maybe make bullets home in on enemies (maybe)
-- [ ] Fix pointerlock controls so they still work if you move off screen
+- [X] Bullet fire time, reload time, and ammo (so no spamming shots)
+- [X] Fix pointerlock controls so they still work if you move off screen
+- [X] Sound effects (on enemy hit, on enemy death, on firing shot, on hurt, on footstep, on ambience?)
 - [ ] Add camera moving up/down or maybe flying enemies, jump over terrain
 - [ ] Reasonable level difficulty progression
 - [ ] Make bullets actually fly at crosshair
-- [ ] Add recoil
+- [X] Add recoil
 - [ ] Fix shooting at edge of level
 - [ ] Loading screen at beginning of the game

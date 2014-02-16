@@ -146,9 +146,25 @@ THREE.PointerLockControls = function ( camera ) {
 
 	};
 
+	var onMouseDown = function(e) {
+		var recoilAmt = 0.15;
+		var moved = 0;
+		var recoverSpeed = 0.001;
+		pitchObject.rotation.x += recoilAmt;
+		var recoil = setInterval(function(){
+			pitchObject.rotation.x -= recoverSpeed;
+			moved += recoverSpeed;
+			if (moved >= recoilAmt) {
+				// pitchObject.rotation.x = temp;
+				clearInterval(recoil);
+			}
+		},1)
+	};
+
 	document.addEventListener( 'mousemove', onMouseMove, false );
 	document.addEventListener( 'keydown', onKeyDown, false );
 	document.addEventListener( 'keyup', onKeyUp, false );
+	document.addEventListener( 'mousedown', onMouseDown, false);
 
 	this.enabled = false;
 	this.object = yawObject;

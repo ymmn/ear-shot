@@ -56,6 +56,21 @@ var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
 	allowDiagonal: true,
 }), grid = new PF.Grid(mapW, mapH, map);
 */
+var pointerlockchange = function ( event ) {
+
+	var element = document.body;
+	if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+		controls.enabled = true;
+		$("#intro").fadeOut();
+		$("#crosshair").show();
+	} else {
+		controls.enabled = false;
+		$("#intro").show();
+		$("#crosshair").hide();
+	}
+
+};
+
 function requestPointerLockPls(){
 
 	// Ask the browser to lock the pointer
@@ -93,20 +108,17 @@ function requestPointerLockPls(){
 
 // Initialize and run on document ready
 $(document).ready(function() {
-	$('body').append('<div id="intro">Click to start</div>');
-	$('#intro').css({width: WIDTH, height: HEIGHT}).one('click', function(e) {
+	$('#intro').css({width: WIDTH, height: HEIGHT});
+	$("#play").on('click', function(e) {
 		e.preventDefault();
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
-		$(this).fadeOut();
-
-		// show crosshair
-		$("#crosshair").show();
-		init();
-		// setInterval(drawRadar, 1000);
-		animate();
 	});
+	// Hook pointer lock state change events
+	document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+	document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+	document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
 	/*
 	new t.ColladaLoader().load('models/Yoshi/Yoshi.dae', function(collada) {
 		model = collada.scene;
@@ -116,6 +128,9 @@ $(document).ready(function() {
 		scene.add(model);
 	});
 	*/
+	init();
+	// setInterval(drawRadar, 1000);
+	animate();
 });
 
 
@@ -132,7 +147,6 @@ function init() {
 	cam = new t.PerspectiveCamera(60, ASPECT, 1, 10000); // FOV, aspect, near, far
 	cam.position.y = UNITSIZE * .2;
 	controls = new THREE.PointerLockControls( cam );
-	controls.enabled = true;
 	scene.add( controls.object );
 	// scene.add( cam );
 	
@@ -193,6 +207,7 @@ function animate() {
 var time = Date.now();
 // Update and display
 function render() {
+	if(!controls.enabled) return;
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
 	var aispeed = delta * 1 *MOVESPEED / 10;
 	var tdelta = Date.now() - time;
@@ -216,12 +231,16 @@ function render() {
 			$('#health').html(health);
 			lastHealthPickup = Date.now();
 			createjs.Sound.play('healthpack');
-
 		}
 		healthcube.material.wireframe = false;
 	}
 	else {
 		healthcube.material.wireframe = true;
+	}
+
+	for (var i = ai.length-1; i >= 0; i--) {
+		var a = ai[i];
+		a.invisible = !DEBUG;
 	}
 
 	// Update bullets. Walk backwards through the list so we can remove items.
@@ -241,7 +260,6 @@ function render() {
 			var v = a.geometry.vertices[0];
 			var c = a.position;
 			var x = Math.abs(v.x), z = Math.abs(v.z);
-			a.invisible = !DEBUG;
 			//console.log(Math.round(p.x), Math.round(p.z), c.x, c.z, x, z);
 			if (p.x < c.x + x && p.x > c.x - x &&
 					p.z < c.z + z && p.z > c.z - z &&
@@ -351,8 +369,11 @@ function render() {
 
 		/* update enemy audio based on position and orientation */
 		if(soundLoaded) {
-			a.sound.changeAudioPosition(a.position.x, a.position.y, a.position.z);
-			a.sound.changeAudioOrientation(a.matrixWorld);
+			AIPos = a.position;
+			myPos = controls.object.position;
+			posVector = new THREE.Vector3(myPos.x-AIPos.x, myPos.y-AIPos.y, myPos.z-AIPos.z);
+			a.sound.changeAudioPosition(AIPos.x, AIPos.y, AIPos.z);
+			a.sound.changeAudioOrientation(posVector, AIPos, a.matrixWorld);
 		}
 
 		// Move AI
@@ -456,7 +477,7 @@ function render() {
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
 	// Geometry: floor
-	var floorTex = t.ImageUtils.loadTexture('images/floor-forest.jpg');
+	var floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
 	floorTex.repeat.set(20,20);
@@ -470,9 +491,13 @@ function setupScene() {
 	for (var i = 0; i < mapW-1; i++) {
 		for (var j = 0; j < mapH-1; j++) {
 			if (Math.random() > 0.75) {
+				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
+				// treeTex.repeat.set(5,1);
+				var treeMesh = new t.MeshBasicMaterial({map: treeTex});
 				var tree = new t.Mesh(
 					new t.CylinderGeometry(20, 20, 250, 8, 1, false), // top rad, bottom rad, height, vert faces, horiz faces, capped ends
-					new t.MeshLambertMaterial({color: 0x6F4242})
+					treeMesh
 				);
 				var leaves = new t.Mesh(
 					new t.SphereGeometry(100),
@@ -759,3 +784,4 @@ window.setInterval(function(){
 function getRandBetween(lo, hi) {
  return parseInt(Math.floor(Math.random()*(hi-lo+1))+lo, 10);
 }
+
