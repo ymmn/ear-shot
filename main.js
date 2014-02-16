@@ -9,22 +9,22 @@
 var map = [ // 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
-           [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,], // 2
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
            [1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
            [1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
-           [1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1,], // 6
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
+           [1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 9
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 10
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 11
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 12
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 1,], // 13
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 13
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 14
-           [1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 15
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 15
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 16
-           [1, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1,], // 17
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 17
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 18
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 19
            ], mapW = map.length, mapH = map[0].length;
@@ -37,7 +37,7 @@ var WIDTH = window.innerWidth,
 	WALLHEIGHT = UNITSIZE / 3,
 	MOVESPEED = 100,
 	LOOKSPEED = 0.075,
-	BULLETMOVESPEED = MOVESPEED * 55,
+	BULLETMOVESPEED = MOVESPEED * 15,
 	NUMAI = 5,
 	BOOBOO_GUN = 1,
 	DAMAGERADIUS = 20,
@@ -56,8 +56,10 @@ var WIDTH = window.innerWidth,
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
-		{id:"booboo", src:"assets/booboogun.wav"}
-		{id:"towerdamage", src:"assets/towerdamage.mp3"}
+		{id:"booboo", src:"assets/booboogun.wav"},
+		{id:"low-beep", src:"assets/low-beep.wav"},
+		{id:"med-beep", src:"assets/med-beep.wav"},
+		{id:"hi-beep", src:"assets/hi-beep.wav"}
 	],
 	detectors = [1,2,3];
 
@@ -182,7 +184,7 @@ function preloadEverything() {
 	  footstepsBuffer = audioContext.createBuffer(this.response, false);
 	  loadingPercentage += 15;
 	  checkDoneLoading("Loading other sounds");
-	  console.log("loaded footsteps");
+	  // console.log("loaded footsteps");
 	};	
 	request.send();
 	// detector noise
@@ -193,7 +195,7 @@ function preloadEverything() {
 	  detectorBuffer = audioContext.createBuffer(this.response, false);
 	  loadingPercentage += 15;
 	  checkDoneLoading("Loading other sounds");
-	  console.log("loaded detector");
+	  // console.log("loaded detector");
 	};	
 	request.send();
 
@@ -218,10 +220,8 @@ function preloadEverything() {
 
 // Initialize and run on document ready
 $(document).ready(function() {
-
-	$("#instructions").hide();
-
 	preloadEverything();
+	$("#instructions").hide();
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
 		if(loadingPercentage != 100) {
@@ -245,8 +245,6 @@ $(document).ready(function() {
 		$("#buttons").hide();
 		$("#instructions").show();
 	});
-
-
 	// Hook pointer lock state change events
 	document.addEventListener( 'pointerlockchange', pointerlockchange, false );
 	document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
@@ -270,6 +268,14 @@ $(document).ready(function() {
 function init() {
 	// setupSound();
 	// createjs.Sound.registerManifest(manifest);
+	beepers = {
+		low: createjs.Sound.play("low-beep", createjs.Sound.INTERRUPT_NONE, 0, 0, -1, 0.35),
+		med: createjs.Sound.play("med-beep", createjs.Sound.INTERRUPT_NONE, 0, 0, -1, 0.35),
+		hi: createjs.Sound.play("hi-beep", createjs.Sound.INTERRUPT_NONE, 0, 0, -1, 0.35)
+	};
+	beepers.low.setMute(true);
+	beepers.med.setMute(true);
+	beepers.hi.setMute(true);
 	initialized = true;
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
@@ -298,7 +304,7 @@ function init() {
 
 	// World objects
 	setupScene();
-	setupAI();
+	// setupAI();
 
 	
 	// Handle drawing as WebGL (faster than Canvas but less supported)
@@ -338,7 +344,7 @@ function init() {
 	});
 	
 	// Display the HUD: radar, health, score, and credits/directions
-	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+	$('body').append('<div id="hud"><p>Wave: <span id="wave"></span></p><p># of Enemies: <span id="num-enemies"></span></p><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
 	$('body').append('<canvas id="radar" width="400" height="400"></canvas>');
 
 	for (var i = 0; i < ai.length; i++) {
@@ -352,6 +358,20 @@ function animate() {
 		requestAnimationFrame(animate);
 	}
 	render();
+}
+
+var waveNum = 0;
+var waveToEnemies = [0, 1, 2, 4, 7, 10, 13, 17, 20];
+function launchWave() {
+	waveNum++;
+
+	var numEnemies = waveToEnemies[waveNum];
+
+	for(var i = 0; i < numEnemies; i++) {
+		var o = addAI();
+		o.sound.start();
+	}
+
 }
 
 var time = Date.now();
@@ -376,7 +396,7 @@ function render() {
 
 	for(var i = 0; i < detectors.length; i++) {
 		var dtctor = detectors[i];
-		console.log(dtctor.detected, dtctor.isOn)
+		// console.log(dtctor.detected, dtctor.isOn)
 		var d = distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z);
 		if (d < 30 && toggleDetector && !heldDetector) {
 			scene.remove(dtctor);
@@ -395,7 +415,7 @@ function render() {
 			dtctor.sound = new PerspectiveSound(detectorBuffer);
 		}
 	}
-	console.log(toggleDetector,heldDetector,heldDetector.isOn);
+	// console.log(toggleDetector,heldDetector,heldDetector.isOn);
 	if (heldDetector && toggleDetector) {
 		var dtctor = heldDetector;
 		toggleDetector = false;
@@ -407,7 +427,7 @@ function render() {
 		scene.add(dtctor);
 		dtctor.sound.changeAudioPosition(dtctor.position.x, dtctor.position.y, dtctor.position.z);
 	}
-	console.log(toggleDetector,heldDetector,heldDetector.isOn);
+	// console.log(toggleDetector,heldDetector,heldDetector.isOn);
 
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
@@ -427,7 +447,7 @@ function render() {
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
 		for(var j = 0; j < detectors.length; j++){
-			console.log('buh',detectors[j].detected)
+			// console.log('buh',detectors[j].detected)
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
 			if (d < 100) {
@@ -521,8 +541,15 @@ function render() {
 		 hitAnything = true;
 	}
 
+	/* reload */
+	if (ammo === 0 && (Date.now() > lastShotFired + 2000)) {
+		ammo = WEAPONS[weaponIndex].maxammo;
+		createjs.Sound.play('guncock');
+	}
+	
 	// Update AI.
 	// console.log(ai.length);
+	var closestEnemyDist = 1000;
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
 
@@ -540,8 +567,9 @@ function render() {
 		a.prevInvisible = a.invisible;
 		// console.log("I HAVE AI");
 		var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
+		closestEnemyDist = Math.min(distFromPlayer, closestEnemyDist);
 		if (a.health <= 0) {
-			console.log("DED");
+			// console.log("DED");
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
@@ -559,15 +587,14 @@ function render() {
 			}
 			deathSound.setVolume(vol);
 			$('#score').html(kills * 100);
-			var o = addAI();
-			o.sound.start();
+			if(ai.length === 0) {
+				window.setTimeout(launchWave, 10000);
+			}
+			// var o = addAI();
+			// o.sound.start();
 		}
 
-		/* reload */
-		if (ammo === 0 && (Date.now() > lastShotFired + 2000)) {
-			ammo = WEAPONS[weaponIndex].maxammo;
-			createjs.Sound.play('guncock');
-		}
+
 
 
 		/* update enemy audio based on position and orientation */
@@ -610,8 +637,8 @@ function render() {
 		if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
 			ai.splice(i, 1);
 			scene.remove(a);
-			var o = addAI();
-			o.sound.start();
+			// var o = addAI();
+			// o.sound.start();
 		}
 		// AI Damage
 		if (!GOTHIT && distFromPlayer < DAMAGERADIUS) {
@@ -653,23 +680,35 @@ function render() {
 		// 	a.lastShot = Date.now();
 		// }
 	}
-
+	var vol = 1.0 - (closestEnemyDist / 1000);
+	vol = Math.max(vol, 0.1);
+	var loVol = 0;
+	var medVol = 0;
+	var hiVol = 0;
+	if( vol < 0.3 ){
+		loVol = 1;
+	} else if( vol < 0.7 ) {
+		medVol = 1;
+	} else {
+		hiVol = 1;
+	}
+	beepers.low.volume = loVol;
+	beepers.med.volume = medVol;
+	beepers.hi.volume = hiVol;
+	// console.log(closestEnemyDist + " " + vol);
 	renderer.render(scene, cam); // Repaint
 	time = Date.now();
 	
 	// Death
-	if (health <= 0 || towers.length <= 0) {
-		runAnim = false;
-		$(renderer.domElement).fadeOut();
-		$('#radar, #hud, #credits').fadeOut();
-		$('#intro').fadeIn();
-		$('#play').html('Ouch! Click to restart...');
-		document.exitPointerLock = document.exitPointerLock ||
-								   document.mozExitPointerLock ||
-								   document.webkitExitPointerLock;
-		document.exitPointerLock();
-		$('#play').on('click', function() {
-
+	// if (health <= 0) {
+	// 	runAnim = false;
+	// 	$(renderer.domElement).fadeOut();
+	// 	$('#radar, #hud, #credits').fadeOut();
+	// 	$('#intro').fadeIn();
+	// 	$('#intro').html('Ouch! Click to restart...');
+	// 	$('#intro').one('click', function() {
+	// 		location = location;
+			/*
 			$(renderer.domElement).fadeIn();
 			$('#radar, #hud, #credits').fadeIn();
 			$(this).fadeOut();
@@ -677,13 +716,14 @@ function render() {
 			animate();
 			health = 100;
 			$('#health').html(health);
-			kills = 0;
+			kills--;
+			if (kills <= 0) kills = 0;
 			$('#score').html(kills * 100);
 			cam.translateX(-controls.object.position.x);
 			cam.translateZ(-controls.object.position.z);
-			
-		});
-	}
+			*/
+	// 	});
+	// }
 }
 
 // Set up the objects in the world
@@ -906,7 +946,6 @@ function checkTowerCollision(v, isEnemy) {
 			if (dist < 150) {
 				if (towers[i].gotHit == false && isEnemy == true) {
 					towers[i].health -= 2;
-					createjs.Sound.play(towerdamage);
 					towers[i].gotHit = true;
 					setTimeout(function(){
 						if (towers[i] != null)
@@ -1005,7 +1044,7 @@ function createBullet(obj, pos, weapon) {
 		obj = cam;
 	}
 	var sphere = new t.Mesh(sphereGeo, weapon.material);
-	sphere.position.set(pos.x, pos.y * 0.8, pos.z);
+	sphere.position.set(pos.x, 50 +  pos.y * 0.8, pos.z);
 	sphere.damage = weapon.damage;
 
 	if (obj instanceof t.Camera) {
@@ -1103,6 +1142,10 @@ window.setInterval(function(){
 	$("#accuracy").html( Math.round(10000 * numHits / numShots) / 100);
 }, 1000);
 
+window.setInterval(function(){
+	$("#wave").html( waveNum );
+	$("#num-enemies").html( ai.length );
+}, 1000);
 //Get a random integer between lo and hi, inclusive.
 //Assumes lo and hi are integers and lo is lower than hi.
 function getRandBetween(lo, hi) {

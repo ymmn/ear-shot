@@ -3,12 +3,12 @@ Ear-Shot
 
 TODO
 
-- [ ] BUG: shoot while at edges
-- [ ] Make detectors work
-- [ ] Larger map
 - [ ] Instructions
-- [ ] Loading screen at beginning of the game
 - [ ] Difficulty design
+- [X] BUG: shoot while at edges
+- [X] Make detectors work
+- [X] Larger map
+- [X] Loading screen at beginning of the game
 - [X] Redo floor to be infinite plane
 - [X] Draw 3d world with one cube
 - [X] Redo AIs
