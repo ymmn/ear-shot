@@ -69,6 +69,10 @@ THREE.PointerLockControls = function ( camera ) {
 				DEBUG = true;
 				break;
 
+			case 69:
+				attemptPickup = true;
+				break;
+
 			case 32: // space
 				if ( canJump === true ) velocity.y += gravityDir.y * -10;
 				canJump = false;
@@ -127,6 +131,10 @@ THREE.PointerLockControls = function ( camera ) {
 				DEBUG = false;
 				break;
 
+			case 69:
+				attemptPickup = false;
+				break;
+
 			case 37: // left
 			case 65: // a
 				moveLeft = false;
@@ -147,18 +155,20 @@ THREE.PointerLockControls = function ( camera ) {
 	};
 
 	var onMouseDown = function(e) {
-		var recoilAmt = 0.15;
-		var moved = 0;
-		var recoverSpeed = 0.001;
-		pitchObject.rotation.x += recoilAmt;
-		var recoil = setInterval(function(){
-			pitchObject.rotation.x -= recoverSpeed;
-			moved += recoverSpeed;
-			if (moved >= recoilAmt) {
-				// pitchObject.rotation.x = temp;
-				clearInterval(recoil);
-			}
-		},1)
+		if(ammo > 0) {
+			var recoilAmt = 0.15;
+			var moved = 0;
+			var recoverSpeed = 0.001;
+			pitchObject.rotation.x += recoilAmt;
+			var recoil = setInterval(function(){
+				pitchObject.rotation.x -= recoverSpeed;
+				moved += recoverSpeed;
+				if (moved >= recoilAmt) {
+					// pitchObject.rotation.x = temp;
+					clearInterval(recoil);
+				}
+			},1);
+		}
 	};
 
 	document.addEventListener( 'mousemove', onMouseMove, false );

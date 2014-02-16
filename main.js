@@ -36,6 +36,7 @@ var WIDTH = window.innerWidth,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
+	attemptPickup = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
@@ -54,6 +55,7 @@ var healthCube, lastHealthPickup = 0;
 var towers = [];
 var accuracy = 0, numShots = 0, numHits = 0;
 var hitAnything = false;
+var aiGeo = new t.CubeGeometry(40, 40, 40);
 
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
@@ -115,8 +117,13 @@ $(document).ready(function() {
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
 		e.preventDefault();
+		
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
+
+		// Display the HUD: radar, health, score, and credits/directions
+		$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 
 	});
 	// Hook pointer lock state change events
@@ -147,6 +154,12 @@ function init() {
 	scene = new t.Scene(); // Holds all objects in the canvas
 	scene.fog = new t.FogExp2(0xD6F1FF, 0.0005); // color, density
 	
+	// load 3d model 
+    // var loader = new THREE.JSONLoader();
+    // loader.load( "models/zombie.js", function(geometry){
+    // 	aiGeo = geometry;
+    // });
+
 	// Set up camera
 	cam = new t.PerspectiveCamera(60, ASPECT, 1, 10000); // FOV, aspect, near, far
 	cam.position.y = UNITSIZE * .2;
@@ -228,6 +241,14 @@ function render() {
 	healthcube.rotation.x += 0.004;
 	healthcube.rotation.y += 0.008;
 
+	for(var i = 0; i < detectors.length; i++) {
+		dtctor = detectors[i];
+		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && attemptPickup) {
+			scene.remove(dtctor);
+			detectors.splice(i, 1);
+		}
+	}
+
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
 		if (distance(controls.object.position.x, controls.object.position.z, healthcube.position.x, healthcube.position.z) < 15 && health != 100) {
@@ -244,7 +265,16 @@ function render() {
 
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
-		a.invisible = !DEBUG;
+		var detected = false;
+		for(var j = 0; j < detectors.length; j++){
+			var dtctor = detectors[j];
+			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
+			if (d < 100) {
+				detected = true;
+				break;
+			}
+		}
+		a.invisible = !detected && !DEBUG;
 	}
 
 	// Update bullets. Walk backwards through the list so we can remove items.
@@ -566,9 +596,6 @@ function setupScene() {
 	// 	}
 	// }
 
-	// Display the HUD: radar, health, score, and credits/directions
-	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
-	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -588,7 +615,6 @@ function setupScene() {
 }
 
 var ai = [];
-var aiGeo = new t.CubeGeometry(40, 40, 40);
 function setupAI() {
 	for (var i = 0; i < NUMAI; i++) {
 		addAI();
@@ -599,14 +625,17 @@ function addAI() {
 	var c = getMapSector(controls.object.position);
 	var aiMaterial = new THREE.MeshLambertMaterial( { color: 0xFFBF00, transparent: false } ); //= new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
 	var o = new t.Mesh(aiGeo, aiMaterial);
+
 	do {
 		var x = getRandBetween(0, mapW-1);
 		var z = getRandBetween(0, mapH-1);
 	} while (map[x][z] > 0 || (x == c.x && z == c.z));
+
 	// aiMaterial.wireframe = true;
 	x = Math.floor(x - mapW/2) * UNITSIZE;
 	z = Math.floor(z - mapW/2) * UNITSIZE;
 	o.position.set(x, UNITSIZE * 0.15, z);
+
 	o.health = 100;
 	//o.path = getAIpath(o);
 	o.pathPos = 1;
@@ -697,6 +726,13 @@ function drawRadar() {
 					d++; // num baddies in map
 				}
 			}
+			var dd = 0;
+			for (var k = 0, n = detectors.length; k < n; k++) {
+				var e = getMapSector(detectors[k].position);
+				if (i == e.x && j == e.z) {
+					dd++; // num baddies in map
+				}
+			}
 			for (var k = 0, n = towers.length; k < n; k++) {
 				var e = getMapSector(towers[k].position);
 				if (i == e.x && j == e.z)
@@ -723,6 +759,12 @@ function drawRadar() {
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+d, i*20+8, j*20+12);
+			}
+			else if (dd > 0) { // detectors
+				context.fillStyle = '#FFFF00';
+				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
+				context.fillStyle = '#000000';
+				context.fillText(''+dd, i*20+8, j*20+12);
 			}
 			else if (map[i][j] == 1) { // wall
 				context.fillStyle = '#666666';
