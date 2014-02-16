@@ -57,6 +57,7 @@ var WIDTH = window.innerWidth,
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
 		{id:"booboo", src:"assets/booboogun.wav"}
+		{id:"towerdamage", src:"assets/towerdamage.mp3"}
 	],
 	detectors = [1,2,3];
 
@@ -905,6 +906,7 @@ function checkTowerCollision(v, isEnemy) {
 			if (dist < 150) {
 				if (towers[i].gotHit == false && isEnemy == true) {
 					towers[i].health -= 2;
+					createjs.Sound.play(towerdamage);
 					towers[i].gotHit = true;
 					setTimeout(function(){
 						if (towers[i] != null)
