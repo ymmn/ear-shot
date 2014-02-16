@@ -59,6 +59,7 @@ var WIDTH = window.innerWidth,
 		{id:"booboo", src:"assets/booboogun.wav"},
 		{id:"low-beep", src:"assets/low-beep.wav"},
 		{id:"med-beep", src:"assets/med-beep.wav"},
+		{id:"towerdamage", src:"assets/towerdamage.mp3"},
 		{id:"hi-beep", src:"assets/hi-beep.wav"}
 	],
 	detectors = [1,2,3];
@@ -347,9 +348,8 @@ function init() {
 	$('body').append('<div id="hud"><p>Wave: <span id="wave"></span></p><p># of Enemies: <span id="num-enemies"></span></p><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
 	$('body').append('<canvas id="radar" width="400" height="400"></canvas>');
 
-	for (var i = 0; i < ai.length; i++) {
-		ai[i].sound.start();
-	}
+	window.setTimeout(launchWave, 5000);
+
 }
 
 // Helper function for browser frames
@@ -947,6 +947,7 @@ function checkTowerCollision(v, isEnemy) {
 				if (towers[i].gotHit == false && isEnemy == true) {
 					towers[i].health -= 2;
 					towers[i].gotHit = true;
+					createjs.Sound.play("towerdamage");
 					setTimeout(function(){
 						if (towers[i] != null)
 							towers[i].gotHit = false;
