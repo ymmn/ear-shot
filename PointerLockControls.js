@@ -220,7 +220,7 @@ THREE.PointerLockControls = function ( camera ) {
 
 	this.update = function ( delta ) {
 
-		var movespeed = 20.12;
+		var movespeed = 5.0;
 		var friction = 0.8;
 
 		if ( scope.enabled === false ) return;
