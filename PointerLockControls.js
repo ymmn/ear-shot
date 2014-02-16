@@ -65,12 +65,12 @@ THREE.PointerLockControls = function ( camera ) {
 				moveRight = true;
 				break;
 
-			case 70:
+			case 70: // f
 				DEBUG = true;
 				break;
 
-			case 69:
-				attemptPickup = true;
+			case 32:
+				toggleDetector = true;
 				break;
 
 			case 32: // space
@@ -131,8 +131,8 @@ THREE.PointerLockControls = function ( camera ) {
 				DEBUG = false;
 				break;
 
-			case 69:
-				attemptPickup = false;
+			case 32:
+				toggleDetector = false;
 				break;
 
 			case 37: // left
