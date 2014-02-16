@@ -56,6 +56,21 @@ var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
 	allowDiagonal: true,
 }), grid = new PF.Grid(mapW, mapH, map);
 */
+var pointerlockchange = function ( event ) {
+
+	var element = document.body;
+	if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+		controls.enabled = true;
+		$("#intro").fadeOut();
+		$("#crosshair").show();
+	} else {
+		controls.enabled = false;
+		$("#intro").show();
+		$("#crosshair").hide();
+	}
+
+};
+
 function requestPointerLockPls(){
 
 	// Ask the browser to lock the pointer
@@ -93,20 +108,17 @@ function requestPointerLockPls(){
 
 // Initialize and run on document ready
 $(document).ready(function() {
-	$('body').append('<div id="intro">Click to start</div>');
-	$('#intro').css({width: WIDTH, height: HEIGHT}).one('click', function(e) {
+	$('#intro').css({width: WIDTH, height: HEIGHT});
+	$("#play").on('click', function(e) {
 		e.preventDefault();
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
-		$(this).fadeOut();
-
-		// show crosshair
-		$("#crosshair").show();
-		init();
-		// setInterval(drawRadar, 1000);
-		animate();
 	});
+	// Hook pointer lock state change events
+	document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+	document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+	document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
 	/*
 	new t.ColladaLoader().load('models/Yoshi/Yoshi.dae', function(collada) {
 		model = collada.scene;
@@ -116,6 +128,9 @@ $(document).ready(function() {
 		scene.add(model);
 	});
 	*/
+	init();
+	// setInterval(drawRadar, 1000);
+	animate();
 });
 
 
@@ -132,7 +147,6 @@ function init() {
 	cam = new t.PerspectiveCamera(60, ASPECT, 1, 10000); // FOV, aspect, near, far
 	cam.position.y = UNITSIZE * .2;
 	controls = new THREE.PointerLockControls( cam );
-	controls.enabled = true;
 	scene.add( controls.object );
 	// scene.add( cam );
 	
@@ -193,6 +207,7 @@ function animate() {
 var time = Date.now();
 // Update and display
 function render() {
+	if(!controls.enabled) return;
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
 	var aispeed = delta * 1 *MOVESPEED / 10;
 	var tdelta = Date.now() - time;
@@ -757,3 +772,4 @@ window.setInterval(function(){
 function getRandBetween(lo, hi) {
  return parseInt(Math.floor(Math.random()*(hi-lo+1))+lo, 10);
 }
+

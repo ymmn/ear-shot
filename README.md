@@ -16,7 +16,7 @@ TODO
 - [X] More than one enemy support (sound-wise)
 - [ ] Maybe make bullets home in on enemies (maybe)
 - [X] Bullet fire time, reload time, and ammo (so no spamming shots)
-- [ ] Fix pointerlock controls so they still work if you move off screen
+- [X] Fix pointerlock controls so they still work if you move off screen
 - [X] Sound effects (on enemy hit, on enemy death, on firing shot, on hurt, on footstep, on ambience?)
 - [ ] Add camera moving up/down or maybe flying enemies, jump over terrain
 - [ ] Reasonable level difficulty progression
