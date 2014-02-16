@@ -5,6 +5,7 @@ var dbgChangeListenerOrientation;
 
 var audioContext;
 var enemySoundBuffer;
+var SOUNDVOLUME = 20;
 function AI_Sound() {
 
 	var ctx = audioContext;
@@ -18,7 +19,7 @@ function AI_Sound() {
     sound.panner = ctx.createPanner();
 	sound.volume = ctx.createGain();
 
-	sound.volume.gain.value = 20;
+	sound.volume.gain.value = SOUNDVOLUME;
 
 	// Connect the sound source to the volume control.
 	sound.source.connect(sound.volume);
@@ -50,7 +51,7 @@ function AI_Sound() {
 				sound.panner.setPosition(x, y, z);
 			};
 
-			that.changeAudioOrientation = function(m) {
+			that.changeAudioOrientation = function(posVector, AIPos, m) {
 				var vec = new THREE.Vector3(0,0,1);
 
 				// Save the translation column and zero it.
@@ -62,7 +63,14 @@ function AI_Sound() {
 				// m.multiplyVector3(vec);
 				vec.normalize();
 
-				sound.panner.setOrientation(vec.x, vec.y, vec.z);
+				var dotProd = vec.dot(posVector);
+				var cos = dotProd / posVector.length() / vec.length();
+				var coef = (1 + .5 * cos) * SOUNDVOLUME;
+				posVector.multiplyScalar(1/coef);
+				newPos = new THREE.Vector3(0,0,0);
+				newPos.subVectors(AIPos,posVector)
+
+				sound.panner.setPosition(newPos.x, newPos.y, newPos.z);
 
 				// Restore the translation column.
 				m.n14 = mx;

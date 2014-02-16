@@ -204,7 +204,6 @@ function render() {
 			$('#health').html(health);
 			lastHealthPickup = Date.now();
 			createjs.Sound.play('healthpack');
-
 		}
 		healthcube.material.wireframe = false;
 	}
@@ -314,8 +313,11 @@ function render() {
 
 		/* update enemy audio based on position and orientation */
 		if(soundLoaded) {
-			a.sound.changeAudioPosition(a.position.x, a.position.y, a.position.z);
-			a.sound.changeAudioOrientation(a.matrixWorld);
+			AIPos = a.position;
+			myPos = controls.object.position;
+			posVector = new THREE.Vector3(myPos.x-AIPos.x, myPos.y-AIPos.y, myPos.z-AIPos.z);
+			a.sound.changeAudioPosition(AIPos.x, AIPos.y, AIPos.z);
+			a.sound.changeAudioOrientation(posVector, AIPos, a.matrixWorld);
 		}
 
 		// Move AI
@@ -419,7 +421,7 @@ function render() {
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
 	// Geometry: floor
-	var floorTex = t.ImageUtils.loadTexture('images/floor-forest.jpg');
+	var floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
 	floorTex.repeat.set(20,20);
@@ -433,9 +435,13 @@ function setupScene() {
 	for (var i = 0; i < mapW-1; i++) {
 		for (var j = 0; j < mapH-1; j++) {
 			if (Math.random() > 0.75) {
+				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
+				// treeTex.repeat.set(5,1);
+				var treeMesh = new t.MeshBasicMaterial({map: treeTex});
 				var tree = new t.Mesh(
 					new t.CylinderGeometry(20, 20, 250, 8, 1, false), // top rad, bottom rad, height, vert faces, horiz faces, capped ends
-					new t.MeshLambertMaterial({color: 0x6F4242})
+					treeMesh
 				);
 				var leaves = new t.Mesh(
 					new t.SphereGeometry(100),
