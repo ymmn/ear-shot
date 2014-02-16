@@ -8,10 +8,10 @@ var map = [ // 1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
+           [1, 0, 0, 0, 0, 3, 0, 0, 0, 1,], // 3
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
+           [1, 0, 0, 0, 0, 0, 0, 3, 0, 1,], // 5
+           [1, 0, 0, 0, 3, 0, 0, 0, 0, 1,], // 6
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 9
@@ -42,7 +42,8 @@ var WIDTH = window.innerWidth,
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
-	];
+	],
+	detectors = [1,2,3];
 
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
@@ -195,7 +196,7 @@ function init() {
 				hitAnything = false;
 			}
 			var opos = controls.object.position;
-			var r = function(){ return 50 * Math.random() - 25; };
+			var r = function(){ return 3 * (Math.random() - 0.5); };
 			for(var i = 0; i < 10; i++) {
 				pos = { x: opos.x + r(), y: opos.y, z: opos.z + r() };
 				createBullet(undefined, pos);
@@ -499,9 +500,21 @@ function setupScene() {
 			floorMesh
 	);
 	scene.add(floor);
+	var dcnt = 0;
 	for (var i = 0; i < mapW-1; i++) {
 		for (var j = 0; j < mapH-1; j++) {
-			if (Math.random() > 0.75) {
+			if(map[i][j] == 3){
+				// draw detector
+				detectors[dcnt] = new t.Mesh(
+					new t.SphereGeometry(10),
+					new t.MeshLambertMaterial({color: 0xFFFFFF})
+				);
+				var x = (i-mapW/2) * UNITSIZE;
+				var z = (j-mapH/2) * UNITSIZE;
+				detectors[dcnt].position.set(x, 100, z);
+				scene.add(detectors[dcnt]);
+				dcnt++;
+			}else if (Math.random() > 0.75) {
 				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
 				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
 				// treeTex.repeat.set(5,1);
@@ -521,11 +534,12 @@ function setupScene() {
 				z += (j-mapH/2) * UNITSIZE;
 				tree.position.set(x, 125, z);
 				leaves.position.set(x, 250, z);
+				scene.add(tree);
+				scene.add(leaves);
 			}
-			scene.add(tree);
-			scene.add(leaves);
 		}
 	}
+
 	
 	// // Geometry: walls
 	// var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
@@ -705,7 +719,7 @@ function drawRadar() {
 }
 
 var bullets = [];
-var sphereMaterial = new t.MeshBasicMaterial({color: 0x333333});
+var sphereMaterial = new t.MeshBasicMaterial({color: 0x000000});
 var sphereGeo = new t.SphereGeometry(2, 6, 6);
 function createBullet(obj, pos) {
 	if (obj === undefined) {
@@ -720,7 +734,7 @@ function createBullet(obj, pos) {
 			ammo--;
 			createjs.Sound.play('gunshot');
 			var vector = new t.Vector3(mouse.x, mouse.y, 1);
-			var r = function() { return Math.random()/10 };
+			var r = function() { return (Math.random()-0.5) / 6 };
 			var variation = new t.Vector3(r(), r(), 0);
 			vector.add(variation);
 			projector.unprojectVector(vector, obj);
