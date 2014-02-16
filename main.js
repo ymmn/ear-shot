@@ -202,7 +202,7 @@ function init() {
 			var opos = controls.object.position;
 			var r = function(){ return 3 * (Math.random() - 0.5); };
 			for(var i = 0; i < 10; i++) {
-				pos = { x: opos.x + r(), y: opos.y + 70 + r(), z: opos.z + r() };
+				pos = { x: opos.x + r(), y: opos.y + 50 + r(), z: opos.z + r() };
 				createBullet(undefined, pos);
 			}
 		}
@@ -709,7 +709,7 @@ function getMapSector(v) {
 function checkWallCollision(v) {
 	var c = getMapSector(v);
 	if(map[c.x] === undefined) return true;
-	return map[c.x][c.z] > 0;
+	return map[c.x][c.z] == 1;
 }
 
 // Radar
