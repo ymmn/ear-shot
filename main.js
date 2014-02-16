@@ -6,17 +6,27 @@
 
 // 1 is boundary
 // 2 is tower
-var map = [ // 1  2  3  4  5  6  7  8  9
-           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
-           [1, 0, 2, 0, 0, 0, 0, 2, 0, 1,], // 2
-           [1, 0, 0, 0, 0, 3, 0, 0, 0, 1,], // 3
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
-           [1, 0, 0, 0, 0, 0, 0, 3, 0, 1,], // 5
-           [1, 0, 0, 0, 3, 0, 0, 0, 0, 1,], // 6
-           [1, 0, 2, 0, 0, 0, 0, 2, 0, 1,], // 7
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
-           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 9
+var map = [ // 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19
+           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
+           [1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
+           [1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
+           [1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 9
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 10
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 11
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 12
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 13
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 14
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 15
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 16
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 17
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 18
+           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 19
            ], mapW = map.length, mapH = map[0].length;
 
 // Semi-constants
@@ -35,6 +45,7 @@ var WIDTH = window.innerWidth,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
+	initialized = false,
 	toggleDetector = false,
 	heldDetector = false,
 	manifest = [
@@ -139,19 +150,94 @@ function requestPointerLockPls(){
 
 }
 
+var loadingPercentage = 0;
+
+function checkDoneLoading(txt) {
+	if(loadingPercentage == 100) {
+		$("#loading").remove();
+		return;
+	}
+	$("#loading span").text(txt + ": " + loadingPercentage);
+}
+
+/* textures */
+var floorTex;
+var treeTex;
+var footstepsBuffer;
+var detectorBuffer; 
+function preloadEverything() {
+	checkDoneLoading("Setting up sound");
+
+	setupSound();
+	loadingPercentage += 10;
+	checkDoneLoading("Loading 3d sounds");
+
+	/* Preload the 3d sounds */
+	// footsteps 
+	var request = new XMLHttpRequest();
+	request.open("GET", "assets/footsteps.mp3", true);
+	request.responseType = "arraybuffer";
+	request.onload = function(e) {
+	  footstepsBuffer = audioContext.createBuffer(this.response, false);
+	  loadingPercentage += 15;
+	  checkDoneLoading("Loading other sounds");
+	  console.log("loaded footsteps");
+	};	
+	request.send();
+	// detector noise
+	var request = new XMLHttpRequest();
+	request.open("GET", "assets/detector.wav", true);
+	request.responseType = "arraybuffer";
+	request.onload = function(e) {
+	  detectorBuffer = audioContext.createBuffer(this.response, false);
+	  loadingPercentage += 15;
+	  checkDoneLoading("Loading other sounds");
+	  console.log("loaded detector");
+	};	
+	request.send();
+
+
+	/* soundjs preloading */        
+	preload = new createjs.LoadQueue();
+    preload.installPlugin(createjs.Sound);
+    preload.addEventListener("complete", function(){
+    	loadingPercentage += 30;
+   		checkDoneLoading("Loading textures");
+    }); // add an event listener for when load is completed
+    preload.loadManifest(manifest);
+
+
+	/* load the textures */
+	floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
+	treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+
+	loadingPercentage += 30;
+	checkDoneLoading("Done!");
+}
+
 // Initialize and run on document ready
 $(document).ready(function() {
+<<<<<<< HEAD
 	$("#instructions").hide();
+=======
+	preloadEverything();
+>>>>>>> ce56316d803ce1b5bf1d5fa36c5037b2372763d0
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
+		if(loadingPercentage != 100) {
+			alert("hiya well pls wait cuz we're loading hehe");
+			return;
+		}
 		e.preventDefault();
 		
+		if(!initialized){
+			init();
+		}
+
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
-		// Display the HUD: radar, health, score, and credits/directions
-		$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
-		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
+
 
 	});
 
@@ -174,20 +260,21 @@ $(document).ready(function() {
 		scene.add(model);
 	});
 	*/
-	init();
-	setInterval(drawRadar, 1000);
-	animate();
+	// init();
+	// setInterval(drawRadar, 1000);
+	// animate();
 });
 
 
 // Setup
 function init() {
-	setupSound();
-	createjs.Sound.registerManifest(manifest);
+	// setupSound();
+	// createjs.Sound.registerManifest(manifest);
+	initialized = true;
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
-	scene.fog = new t.FogExp2(0xD6F1FF, 0.0005); // color, density
+	scene.fog = new t.FogExp2(0x000000, 0.00005); // color, density
 	
 	// load 3d model 
     // var loader = new THREE.JSONLoader();
@@ -211,9 +298,8 @@ function init() {
 
 	// World objects
 	setupScene();
-	
-	// Artificial Intelligence
 	setupAI();
+
 	
 	// Handle drawing as WebGL (faster than Canvas but less supported)
 	renderer = new t.WebGLRenderer();
@@ -226,6 +312,14 @@ function init() {
 	// Track mouse position so we know where to shoot
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 	
+	setInterval(drawRadar, 1000);
+
+	// Set up "hurt" flash
+	$('body').append('<div id="hurt"></div>');
+	$('#hurt').css({width: WIDTH, height: HEIGHT,});
+
+	animate();
+
 	// Shoot on click
 	$(document).click(function(e) {
 		e.preventDefault;
@@ -243,9 +337,13 @@ function init() {
 		}
 	});
 	
-	// Set up "hurt" flash
-	$('body').append('<div id="hurt"></div>');
-	$('#hurt').css({width: WIDTH, height: HEIGHT,});
+	// Display the HUD: radar, health, score, and credits/directions
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+	$('body').append('<canvas id="radar" width="400" height="400"></canvas>');
+
+	for (var i = 0; i < ai.length; i++) {
+		ai[i].sound.start();
+	}
 }
 
 // Helper function for browser frames
@@ -277,25 +375,29 @@ function render() {
 	healthcube.rotation.y += 0.008;
 
 	for(var i = 0; i < detectors.length; i++) {
-		dtctor = detectors[i];
-		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && toggleDetector) {
-			if (!heldDetector) {
-				scene.remove(dtctor);
-				heldDetector = dtctor;
-				detectors.splice(i, 1);
-				toggleDetector = false;
-			}
-			if (dtctor.detected) {
-				dtctor.sound.start();
-				dtctor.isOn = true;
-			} else if (dtctor.isOn) {
-				dtctor.sound.stop();
-				dtctor.sound = new PerspectiveSound('assets/detector.wav');
-			}
+		var dtctor = detectors[i];
+		console.log(dtctor.detected, dtctor.isOn)
+		var d = distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z);
+		if (d < 30 && toggleDetector && !heldDetector) {
+			scene.remove(dtctor);
+			heldDetector = dtctor;
+			dtctor.detected = false;
+			detectors.splice(i, 1);
+			toggleDetector = false;
+		}
+		if (dtctor.detected && !dtctor.isOn) {
+			dtctor.sound.start();
+			dtctor.isOn = true;
+		} 
+		if (dtctor.isOn && !dtctor.detected) {
+			dtctor.sound.stop();
+			dtctor.isOn = false;
+			dtctor.sound = new PerspectiveSound(detectorBuffer);
 		}
 	}
+	console.log(toggleDetector,heldDetector,heldDetector.isOn);
 	if (heldDetector && toggleDetector) {
-		dtctor = heldDetector
+		var dtctor = heldDetector;
 		toggleDetector = false;
 		heldDetector = false;
 		dtctor.position.x = controls.object.position.x;
@@ -305,6 +407,7 @@ function render() {
 		scene.add(dtctor);
 		dtctor.sound.changeAudioPosition(dtctor.position.x, dtctor.position.y, dtctor.position.z);
 	}
+	console.log(toggleDetector,heldDetector,heldDetector.isOn);
 
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
@@ -320,16 +423,18 @@ function render() {
 		healthcube.material.wireframe = true;
 	}
 
+	var hasDetected = [false, false, false];
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
-		var detected = false;
 		for(var j = 0; j < detectors.length; j++){
+			console.log('buh',detectors[j].detected)
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
 			if (d < 100) {
 				dtctor.detected = true;
+				hasDetected[j] = true;
 				break;
-			} else {
+			} else if (!hasDetected[j]) {
 				dtctor.detected = false;
 			}
 		}
@@ -454,7 +559,8 @@ function render() {
 			}
 			deathSound.setVolume(vol);
 			$('#score').html(kills * 100);
-			addAI();
+			var o = addAI();
+			o.sound.start();
 		}
 
 		/* reload */
@@ -465,7 +571,7 @@ function render() {
 
 
 		/* update enemy audio based on position and orientation */
-		if(soundLoaded) {
+		if(a.sound.buffer) {
 			AIPos = a.position;
 			myPos = controls.object.position;
 			posVector = new THREE.Vector3(myPos.x-AIPos.x, myPos.y-AIPos.y, myPos.z-AIPos.z);
@@ -483,14 +589,17 @@ function render() {
 				closestTarget = towers[k];
 			}
 		}
+		
 		var playerDist = Math.abs(controls.object.position.x - a.position.x) + Math.abs(controls.object.position.z - a.position.z);
-		if (playerDist < minDist)
+		if (playerDist < minDist || closestTarget == null)
 			closestTarget = controls.object;
 
 		var transX = closestTarget.position.x - a.position.x;
 		var transZ = closestTarget.position.z - a.position.z;
-		a.translateX(aispeed * transX/100);
-		a.translateZ(aispeed * transZ/100);
+		if (!checkTowerCollision(a.position, true) || closestTarget == controls.object) {
+			a.translateX(aispeed * transX/100);
+			a.translateZ(aispeed * transZ/100);
+		}
 		var c = getMapSector(a.position);
 		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
 			a.translateX(-2 * aispeed * a.lastRandomX);
@@ -501,7 +610,8 @@ function render() {
 		if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
 			ai.splice(i, 1);
 			scene.remove(a);
-			addAI();
+			var o = addAI();
+			o.sound.start();
 		}
 		// AI Damage
 		if (!GOTHIT && distFromPlayer < DAMAGERADIUS) {
@@ -548,15 +658,18 @@ function render() {
 	time = Date.now();
 	
 	// Death
-	// if (health <= 0) {
-	// 	runAnim = false;
-	// 	$(renderer.domElement).fadeOut();
-	// 	$('#radar, #hud, #credits').fadeOut();
-	// 	$('#intro').fadeIn();
-	// 	$('#intro').html('Ouch! Click to restart...');
-	// 	$('#intro').one('click', function() {
-	// 		location = location;
-			/*
+	if (health <= 0 || towers.length <= 0) {
+		runAnim = false;
+		$(renderer.domElement).fadeOut();
+		$('#radar, #hud, #credits').fadeOut();
+		$('#intro').fadeIn();
+		$('#play').html('Ouch! Click to restart...');
+		document.exitPointerLock = document.exitPointerLock ||
+								   document.mozExitPointerLock ||
+								   document.webkitExitPointerLock;
+		document.exitPointerLock();
+		$('#play').on('click', function() {
+
 			$(renderer.domElement).fadeIn();
 			$('#radar, #hud, #credits').fadeIn();
 			$(this).fadeOut();
@@ -564,21 +677,28 @@ function render() {
 			animate();
 			health = 100;
 			$('#health').html(health);
-			kills--;
-			if (kills <= 0) kills = 0;
+			kills = 0;
 			$('#score').html(kills * 100);
 			cam.translateX(-controls.object.position.x);
 			cam.translateZ(-controls.object.position.z);
-			*/
-	// 	});
-	// }
+			
+		});
+	}
 }
 
 // Set up the objects in the world
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
+
+	// environment map
+	var cubemap = t.ImageUtils.loadTexture('images/sky.jpg');
+	cubemap.wrapS = cubemap.wrapT = t.RepeatWrapping;
+	var cubeMat = new t.MeshBasicMaterial({map: cubemap});
+	var skybox = new t.Mesh( new t.CubeGeometry( 10000, 3000, 10000 ), cubeMat );
+	cubeMat.side = t.BackSide;
+	scene.add(skybox);
+
 	// Geometry: floor
-	var floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
 	floorTex.repeat.set(20,20);
@@ -596,20 +716,20 @@ function setupScene() {
 		for (var j = 0; j < mapH-1; j++) {
 			if(map[i][j] == 3){
 				// draw detector
-				dtctor = new t.Mesh(
+				var dtctor = new t.Mesh(
 					new t.SphereGeometry(10),
 					new t.MeshLambertMaterial({color: 0xFFFFFF})
 				);
 				var x = (i-mapW/2) * UNITSIZE;
 				var z = (j-mapH/2) * UNITSIZE;
 				dtctor.position.set(x, 100, z);
-				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+				dtctor.sound = new PerspectiveSound(detectorBuffer);
 				dtctor.detected = false;
+				dtctor.isOn = false;
 				scene.add(dtctor);
 				detectors[dcnt] = dtctor;
 				dcnt++;
-			} else if (Math.random() > 0.75) {
-				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+			}else if (Math.random() > 0.75) {
 				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
 				// treeTex.repeat.set(5,1);
 				var treeMesh = new t.MeshBasicMaterial({map: treeTex});
@@ -699,7 +819,7 @@ function addAI() {
 
 	// aiMaterial.wireframe = true;
 	x = Math.floor(x - mapW/2) * UNITSIZE;
-	z = Math.floor(z - mapW/2) * UNITSIZE;
+	z = Math.floor(z - mapH/2) * UNITSIZE;
 	o.position.set(x, UNITSIZE * 0.15, z);
 
 	o.health = 100;
@@ -710,13 +830,15 @@ function addAI() {
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
 
 	/* add 3d sound */
-	o.sound = new PerspectiveSound("assets/footsteps.mp3");
+	o.sound = new PerspectiveSound(footstepsBuffer);
 
 	o.type = Math.floor(Math.random() * 3);
 
 	ai.push(o);
 	o.invisible = !DEBUG;
 	o.prevInvisible = DEBUG;
+
+	return o;
 }
 
 function getAIpath(a) {
@@ -759,7 +881,7 @@ function distance(x1, y1, x2, y2) {
 
 function getMapSector(v) {
 	var x = Math.floor((v.x + UNITSIZE / 2) / UNITSIZE + mapW/2);
-	var z = Math.floor((v.z + UNITSIZE / 2) / UNITSIZE + mapW/2);
+	var z = Math.floor((v.z + UNITSIZE / 2) / UNITSIZE + mapH/2);
 	return {x: x, z: z};
 }
 
@@ -778,6 +900,28 @@ function checkWallCollision(v) {
 	return map[c.x][c.z] == 1;
 }
 
+function checkTowerCollision(v, isEnemy) {
+	for (var i = 0; i < towers.length; i++) {
+			var dist = Math.abs(v.x - towers[i].position.x) + Math.abs(v.z - towers[i].position.z);
+			if (dist < 150) {
+				if (towers[i].gotHit == false && isEnemy == true) {
+					towers[i].health -= 2;
+					towers[i].gotHit = true;
+					setTimeout(function(){
+						if (towers[i] != null)
+							towers[i].gotHit = false;
+					}, 1000);
+					if (towers[i].health <= 0) {
+						scene.remove(towers[i]);
+						towers.splice(i, 1);
+					}
+				}
+				return true;
+			}
+	}
+	return false;
+}
+
 // Radar
 function drawRadar() {
 	var c = getMapSector(controls.object.position), context = document.getElementById('radar').getContext('2d');
@@ -793,16 +937,23 @@ function drawRadar() {
 				}
 			}
 			var dd = 0;
+			var ddAlarm = false;
 			for (var k = 0, n = detectors.length; k < n; k++) {
 				var e = getMapSector(detectors[k].position);
 				if (i == e.x && j == e.z) {
 					dd++; // num baddies in map
+					if(detectors[k].isOn){
+						ddAlarm = true;
+					}
 				}
 			}
+			var tower;
 			for (var k = 0, n = towers.length; k < n; k++) {
 				var e = getMapSector(towers[k].position);
-				if (i == e.x && j == e.z)
+				if (i == e.x && j == e.z) {
 					hasTower = true;
+					tower = towers[k];
+				}
 			}
 			if (i == c.x && j == c.z && d == 0) { // your pos
 				context.fillStyle = '#0000FF';
@@ -812,7 +963,7 @@ function drawRadar() {
 				context.fillStyle = '#BB0000';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
-				context.fillText(''+d, i*20+8, j*20+12);
+				context.fillText(''+tower.health, i*20+8, j*20+12);
 			}
 			else if (DEBUG && i == c.x && j == c.z) { // your and their pos
 				context.fillStyle = '#AA33FF';
@@ -827,7 +978,11 @@ function drawRadar() {
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
 			else if (dd > 0) { // detectors
-				context.fillStyle = '#FFFF00';
+				var col = '#FFFF00';
+				if(ddAlarm){
+					col = '#FFA500';
+				}
+				context.fillStyle = col;
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+dd, i*20+8, j*20+12);
@@ -896,6 +1051,8 @@ function createTower(pos) {
 	);
 
 	tower.position.set(pos.x, pos.y, pos.z);
+	tower.health = 100;
+	tower.gotHit = false;
 	towers.push(tower);
 	scene.add(tower);
 }
