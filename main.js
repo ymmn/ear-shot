@@ -663,30 +663,30 @@ function drawRadar() {
 			for (var k = 0, n = ai.length; k < n; k++) {
 				var e = getMapSector(ai[k].position);
 				if (i == e.x && j == e.z) {
-					d++;
+					d++; // num baddies in map
 				}
 			}
-			if (i == c.x && j == c.z && d == 0) {
+			if (i == c.x && j == c.z && d == 0) { // your pos
 				context.fillStyle = '#0000FF';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 			}
-			else if (i == c.x && j == c.z) {
+			else if (DEBUG && i == c.x && j == c.z) { // your and their pos
 				context.fillStyle = '#AA33FF';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
-			else if (d > 0 && d < 10) {
+			else if (DEBUG && d > 0 && d < 10) { // their pos
 				context.fillStyle = '#FF0000';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
-			else if (map[i][j] > 0) {
+			else if (map[i][j] > 0) { // wall
 				context.fillStyle = '#666666';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 			}
-			else {
+			else { // empty
 				context.fillStyle = '#CCCCCC';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 			}
