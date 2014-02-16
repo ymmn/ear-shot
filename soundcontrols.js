@@ -6,7 +6,7 @@ var dbgChangeListenerOrientation;
 var audioContext;
 var enemySoundBuffer;
 var SOUNDVOLUME = 20;
-function AI_Sound() {
+function PerspectiveSound(path) {
 
 	var ctx = audioContext;
 	var that = this;
@@ -34,7 +34,6 @@ function AI_Sound() {
 
 		  // Make the sound source use the buffer and start playing it.
 		  sound.source.buffer = sound.buffer;
-		  sound.source.start(ctx.currentTime);
 		  soundLoaded = true;
 
 		  // sound.panner = ctx.createPanner();
@@ -43,6 +42,10 @@ function AI_Sound() {
 			// And hook up the panner to the main volume.
 			// sound.panner.connect(mainVolume);
 
+			that.start = function() {
+				sound.source.start();
+			}
+			
 			that.stop = function() {
 				sound.source.stop();
 			};
@@ -84,7 +87,7 @@ function AI_Sound() {
 	// Load a sound file using an ArrayBuffer XMLHttpRequest.
 	if(enemySoundBuffer === undefined){
 		var request = new XMLHttpRequest();
-		request.open("GET", "assets/footsteps.mp3", true);
+		request.open("GET", path, true);
 		request.responseType = "arraybuffer";
 		request.onload = function(e) {
 

@@ -65,12 +65,12 @@ THREE.PointerLockControls = function ( camera ) {
 				moveRight = true;
 				break;
 
-			case 70:
+			case 70: // f
 				DEBUG = true;
 				break;
 
-			case 69:
-				attemptPickup = true;
+			case 32:
+				toggleDetector = true;
 				break;
 
 			case 32: // space
@@ -131,8 +131,13 @@ THREE.PointerLockControls = function ( camera ) {
 				DEBUG = false;
 				break;
 
-			case 69:
-				attemptPickup = false;
+			case 32:
+				toggleDetector = false;
+				break;
+
+			case 81:
+				weaponIndex++;
+				weaponIndex = weaponIndex % WEAPONS.length;
 				break;
 
 			case 37: // left
@@ -156,7 +161,7 @@ THREE.PointerLockControls = function ( camera ) {
 
 	var onMouseDown = function(e) {
 		if(ammo > 0) {
-			var recoilAmt = 0.15;
+			var recoilAmt = WEAPONS[weaponIndex].recoil;
 			var moved = 0;
 			var recoverSpeed = 0.001;
 			pitchObject.rotation.x += recoilAmt;
@@ -210,6 +215,8 @@ THREE.PointerLockControls = function ( camera ) {
 		}
 
 	}();
+	var counter = 0;
+	var moved = 0;
 
 	this.update = function ( delta ) {
 
@@ -226,7 +233,27 @@ THREE.PointerLockControls = function ( camera ) {
 		/* gravity */
 		// velocity.y += gravityDir.y * 0.25 * delta;
 
-		if ( moveForward ) velocity.z -= movespeed * delta;
+		
+
+		if ( moveForward ) {
+			velocity.z -= movespeed * delta;
+
+			console.log(counter);
+
+			if (counter == 0){
+				var recoilAmt = -0.05;
+				moved = 0;
+				pitchObject.rotation.x += recoilAmt;
+			}
+			
+			if (moved >= recoilAmt){
+				var recoverSpeed = 0.001;
+				pitchObject.rotation.x += recoverSpeed;
+				moved -= recoverSpeed;
+			}	
+			
+			counter = (counter + 1)%2000;
+		}
 		if ( moveBackward ) velocity.z += movespeed * delta;
 
 		if ( moveLeft ) velocity.x -= movespeed * delta;
