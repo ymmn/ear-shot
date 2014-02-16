@@ -80,9 +80,40 @@
       cursor: crosshair;
       margin: 30px;
     }
+
+    #instructions {
+
+          cursor: default;
+          font-size: 12px;
+          position: absolute;
+          text-align: center;
+          top: 10px;
+          width: 100%;
+          z-index: 100;
+
+          /*background-color: #FFFFFF;*/
+          color: #000000;
+          border: 1px solid black;
+          display: inline-block;
+          padding: 5px;
+          width:400;       
+    }
+    td{
+      padding: 0px 25px;
+      text-align: center;
+    }
+    tr{
+      height: 20px;
+    }
+    h3{
+      margin: 0;
+    }
+
+
     #radar {
       opacity: 0.5;
     }
+
   </style>
   <script src="jquery-1.7.2.min.js"></script>
   <script src="soundcontrols.js"></script>
@@ -98,12 +129,61 @@
 </head>
 <body>
   <div id="intro">
+
+    
+
     <div id="loading">Loading <span>0</span>%</div>
-    <div id="menu">
+    <div id="buttons">
       <div id="play"><a>Play</a></div>
-      <div><a>Instructions</a></div>
+      <div id="buttonInstr" ><a>  Instructions</a></div>
     </div>
   </div>
   <img width="100" id="crosshair" src="assets/crosshair.png"></img>
+
+  <div id="instructions">
+    <h1>Take advantage of binaural audio to localize the oncoming zombies and defend your towers! </h1>
+      <h1>Zombies are invisible until you shoot them. Place detectors
+      around the map to supplement your hearing.</h1>
+      <center>
+        <table>
+          <tbody>
+          <tr>
+            <td>
+          <h2>w : forward </h2>
+            </td>
+            <td>
+          <h2> mouse : shoot</h2>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+          <h2>a : left  </h2>
+            </td>
+            <td>
+          <h2> q : switch weapons</h2>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+          <h2> s : backward </h2>
+            </td>
+            <td>
+          <h2> space : pick up / place detector </h2>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <h2>d : right</h2>
+            </td> 
+          </tr>
+        </tbody>
+        </table>
+      </center>
+
+  </div>
 </body>
 </html>
+

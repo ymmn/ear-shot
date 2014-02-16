@@ -3,16 +3,12 @@ Ear-Shot
 
 TODO
 
-- [ ] Game over
+- [ ] BUG: shoot while at edges
+- [ ] Make detectors work
+- [ ] Larger map
 - [ ] Instructions
+- [ ] Loading screen at beginning of the game
 - [ ] Difficulty design
-- [ ] Repair tower items
-- [X] Larger map
-- [X] Make towers die
-- [X] Make detectors work
-- [X] Fix radar
-- [X] Loading screen at beginning of the game
-- [X] BUG: shoot while at edges
 - [X] Redo floor to be infinite plane
 - [X] Draw 3d world with one cube
 - [X] Redo AIs

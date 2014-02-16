@@ -217,6 +217,7 @@ THREE.PointerLockControls = function ( camera ) {
 	}();
 	var counter = 0;
 	var moved = 0;
+	var recoilAmt = -0.01;
 
 	this.update = function ( delta ) {
 
@@ -235,23 +236,34 @@ THREE.PointerLockControls = function ( camera ) {
 
 		
 
-		if ( moveForward ) {
-			velocity.z -= movespeed * delta;
+		// if ( moveForward ) {
+		// 	velocity.z -= movespeed * delta;
 
-			if (counter == 0){
-				var recoilAmt = -0.05;
-				moved = 0;
-				pitchObject.rotation.x += recoilAmt;
-			}
+		// 	//console.log(counter);
+
+		// 	var downcount = 10;
+		// 	if (counter < downcount){
+		// 		moved = 0;
+		// 		if (counter%3 == 0){
+		// 			pitchObject.rotation.x += recoilAmt;
+		// 		}	
+		// 		console.log("recoilAmt = -0.001");
+		// 	}
 			
-			if (moved >= recoilAmt){
-				var recoverSpeed = 0.001;
-				pitchObject.rotation.x += recoverSpeed;
-				moved -= recoverSpeed;
-			}	
+		// 	console.log("recoil =" + downcount * recoilAmt);
+		// 	console.log("m =" + moved);
+		// 	if (moved >= (downcount - 1) * recoilAmt){
+		// 		var recoverSpeed = 0.001;
+		// 		if (counter%3 == 0){
+		// 			pitchObject.rotation.x += recoverSpeed;
+		// 		}	
+				
+		// 		moved -= recoverSpeed;
+		// 		console.log("moved = " + moved);
+		// 	}	
 			
-			counter = (counter + 1)%2000;
-		}
+		// 	counter = (counter + 1)%80;
+		// }
 		if ( moveBackward ) velocity.z += movespeed * delta;
 
 		if ( moveLeft ) velocity.x -= movespeed * delta;
@@ -260,31 +272,29 @@ THREE.PointerLockControls = function ( camera ) {
 		if ( isOnObject === true ) {
 			velocity.y = Math.max( 0, velocity.y );
 		}
-		
-		if (!checkTowerCollision(new t.Vector3(3*velocity.x, 3*velocity.y, 3*velocity.z).add(this.object.position), false) ) {
-			yawObject.translateX( velocity.x );
-			yawObject.translateY( velocity.y ); 
-			yawObject.translateZ( velocity.z );
-		}
 
-		if(yawObject.position.x < -(UNITSIZE * (mapW/2 - 1))) {
+		yawObject.translateX( velocity.x );
+		yawObject.translateY( velocity.y ); 
+		yawObject.translateZ( velocity.z );
+
+		if(yawObject.position.x < -(UNITSIZE * mapW/2)) {
 			velocity.x = 0;
-			yawObject.position.x = -(UNITSIZE * (mapW/2 - 1));
+			yawObject.position.x = -(UNITSIZE * mapW/2);
 		}
 
-		if(yawObject.position.z < -(UNITSIZE * (mapW/2 - 1))) {
+		if(yawObject.position.z < -(UNITSIZE * mapW/2)) {
 			velocity.z = 0;
-			yawObject.position.z = -(UNITSIZE * (mapW/2 - 1));
+			yawObject.position.z = -(UNITSIZE * mapW/2);
 		}
 
-		if(yawObject.position.z > (UNITSIZE * (mapW/2 - 2))) {
+		if(yawObject.position.z > (UNITSIZE * mapW/2)) {
 			velocity.z = 0;
-			yawObject.position.z = UNITSIZE * (mapW/2 -2);
+			yawObject.position.z = UNITSIZE * mapW /2;
 		}
 
-		if(yawObject.position.x > (UNITSIZE * (mapW/2 -2))) {
+		if(yawObject.position.x > (UNITSIZE * mapW /2)) {
 			velocity.x = 0;
-			yawObject.position.x = UNITSIZE * (mapW/2 -2);
+			yawObject.position.x = UNITSIZE * mapW /2;
 		}
 
 		// hit the floor
