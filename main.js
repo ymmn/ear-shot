@@ -217,11 +217,10 @@ function preloadEverything() {
 
 // Initialize and run on document ready
 $(document).ready(function() {
-<<<<<<< HEAD
+
 	$("#instructions").hide();
-=======
+
 	preloadEverything();
->>>>>>> ce56316d803ce1b5bf1d5fa36c5037b2372763d0
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
 		if(loadingPercentage != 100) {
