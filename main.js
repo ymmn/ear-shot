@@ -139,15 +139,86 @@ function requestPointerLockPls(){
 
 }
 
+var loadingPercentage = 0;
+
+function checkDoneLoading(txt) {
+	if(loadingPercentage == 100) {
+		$("#loading").remove();
+		return;
+	}
+	$("#loading span").html(txt + ": " + loadingPercentage);
+}
+
+/* textures */
+var floorTex;
+var treeTex;
+var footstepsBuffer;
+var detectorBuffer; 
+function preloadEverything() {
+	checkDoneLoading("Setting up sound");
+
+	setupSound();
+	loadingPercentage += 10;
+	checkDoneLoading("Loading 3d sounds");
+
+	/* Preload the 3d sounds */
+	// footsteps 
+	var request = new XMLHttpRequest();
+	request.open("GET", "assets/footsteps.mp3", true);
+	request.responseType = "arraybuffer";
+	request.onload = function(e) {
+	  footstepsBuffer = audioContext.createBuffer(this.response, false);
+	  loadingPercentage += 15;
+	  checkDoneLoading("Loading other sounds");
+	  console.log("loaded footsteps");
+	};	
+	request.send();
+	// detector noise
+	var request = new XMLHttpRequest();
+	request.open("GET", "assets/detector.wav", true);
+	request.responseType = "arraybuffer";
+	request.onload = function(e) {
+	  detectorBuffer = audioContext.createBuffer(this.response, false);
+	  loadingPercentage += 15;
+	  checkDoneLoading("Loading other sounds");
+	  console.log("loaded detector");
+	};	
+	request.send();
+
+
+	/* soundjs preloading */        
+	preload = new createjs.LoadQueue();
+    preload.installPlugin(createjs.Sound);
+    preload.addEventListener("complete", function(){
+    	loadingPercentage += 30;
+   		checkDoneLoading("Loading textures");
+    }); // add an event listener for when load is completed
+    preload.loadManifest(manifest);
+
+
+	/* load the textures */
+	floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
+	treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+
+	loadingPercentage += 30;
+	checkDoneLoading("Done!");
+}
+
 // Initialize and run on document ready
 $(document).ready(function() {
+	preloadEverything();
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
-		if(!soundLoaded) {
+		if(loadingPercentage != 100) {
 			alert("hiya well pls wait cuz we're loading hehe");
 			return;
 		}
 		e.preventDefault();
+		
+		init();
+		setInterval(drawRadar, 1000);
+		animate();
+
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
@@ -172,16 +243,16 @@ $(document).ready(function() {
 		scene.add(model);
 	});
 	*/
-	init();
-	setInterval(drawRadar, 1000);
-	animate();
+	// init();
+	// setInterval(drawRadar, 1000);
+	// animate();
 });
 
 
 // Setup
 function init() {
-	setupSound();
-	createjs.Sound.registerManifest(manifest);
+	// setupSound();
+	// createjs.Sound.registerManifest(manifest);
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
@@ -291,7 +362,7 @@ function render() {
 		if (dtctor.isOn && !dtctor.detected) {
 			dtctor.sound.stop();
 			dtctor.isOn = false;
-			dtctor.sound = new PerspectiveSound('assets/detector.wav');
+			dtctor.sound = new PerspectiveSound(detectorBuffer);
 		}
 	}
 	console.log(toggleDetector,heldDetector,heldDetector.isOn);
@@ -322,9 +393,9 @@ function render() {
 		healthcube.material.wireframe = true;
 	}
 
+	var hasDetected = [false, false, false];
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
-		var hasDetected = [false, false, false];
 		for(var j = 0; j < detectors.length; j++){
 			console.log('buh',detectors[j].detected)
 			var dtctor = detectors[j];
@@ -494,8 +565,10 @@ function render() {
 
 		var transX = closestTarget.position.x - a.position.x;
 		var transZ = closestTarget.position.z - a.position.z;
-		a.translateX(aispeed * transX/100);
-		a.translateZ(aispeed * transZ/100);
+		if (!checkTowerCollision(a.position) || closestTarget == controls.object) {
+			a.translateX(aispeed * transX/100);
+			a.translateZ(aispeed * transZ/100);
+		}
 		var c = getMapSector(a.position);
 		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
 			a.translateX(-2 * aispeed * a.lastRandomX);
@@ -583,8 +656,16 @@ function render() {
 // Set up the objects in the world
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
+
+	// environment map
+	var cubemap = t.ImageUtils.loadTexture('images/sky.jpg');
+	cubemap.wrapS = cubemap.wrapT = t.RepeatWrapping;
+	var cubeMat = new t.MeshBasicMaterial({map: cubemap});
+	var skybox = new t.Mesh( new t.CubeGeometry( 10000, 3000, 10000 ), cubeMat );
+	cubeMat.side = t.BackSide;
+	scene.add(skybox);
+
 	// Geometry: floor
-	var floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
 	floorTex.repeat.set(20,20);
@@ -609,14 +690,13 @@ function setupScene() {
 				var x = (i-mapW/2) * UNITSIZE;
 				var z = (j-mapH/2) * UNITSIZE;
 				dtctor.position.set(x, 100, z);
-				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+				dtctor.sound = new PerspectiveSound(detectorBuffer);
 				dtctor.detected = false;
 				dtctor.isOn = false;
 				scene.add(dtctor);
 				detectors[dcnt] = dtctor;
 				dcnt++;
-			} else if (Math.random() > 0.75) {
-				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+			}else if (Math.random() > 0.75) {
 				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
 				// treeTex.repeat.set(5,1);
 				var treeMesh = new t.MeshBasicMaterial({map: treeTex});
@@ -717,7 +797,7 @@ function addAI() {
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
 
 	/* add 3d sound */
-	o.sound = new PerspectiveSound("assets/footsteps.mp3");
+	o.sound = new PerspectiveSound(footstepsBuffer);
 
 	o.type = Math.floor(Math.random() * 3);
 
@@ -787,6 +867,21 @@ function checkWallCollision(v) {
 	return map[c.x][c.z] == 1;
 }
 
+function checkTowerCollision(v) {
+	for (var i = 0; i < towers.length; i++) {
+			var dist = Math.abs(v.x - towers[i].position.x) + Math.abs(v.z - towers[i].position.z);
+			if (dist < 150) {
+				if (towers[i].gotHit == false) {
+					towers[i].health -= 1;
+					towers[i].gotHit = true;
+					setTimeout(function(){towers[i].gotHit = false}, 1000);
+				}
+				return true;
+			}
+	}
+	return false;
+}
+
 // Radar
 function drawRadar() {
 	var c = getMapSector(controls.object.position), context = document.getElementById('radar').getContext('2d');
@@ -808,10 +903,13 @@ function drawRadar() {
 					dd++; // num baddies in map
 				}
 			}
+			var tower;
 			for (var k = 0, n = towers.length; k < n; k++) {
 				var e = getMapSector(towers[k].position);
-				if (i == e.x && j == e.z)
+				if (i == e.x && j == e.z) {
 					hasTower = true;
+					tower = towers[k];
+				}
 			}
 			if (i == c.x && j == c.z && d == 0) { // your pos
 				context.fillStyle = '#0000FF';
@@ -821,7 +919,7 @@ function drawRadar() {
 				context.fillStyle = '#BB0000';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
-				context.fillText(''+d, i*20+8, j*20+12);
+				context.fillText(''+tower.health, i*20+8, j*20+12);
 			}
 			else if (DEBUG && i == c.x && j == c.z) { // your and their pos
 				context.fillStyle = '#AA33FF';
@@ -905,6 +1003,8 @@ function createTower(pos) {
 	);
 
 	tower.position.set(pos.x, pos.y, pos.z);
+	tower.health = 100;
+	tower.gotHit = false;
 	towers.push(tower);
 	scene.add(tower);
 }

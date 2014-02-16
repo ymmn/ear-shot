@@ -4,9 +4,8 @@ var changeListenerOrientation;
 var dbgChangeListenerOrientation;
 
 var audioContext;
-var loadedSounds = {};
 var SOUNDVOLUME = 20;
-function PerspectiveSound(path, startNow) {
+function PerspectiveSound(soundBuffer, startNow) {
 
 	var ctx = audioContext;
 	var that = this;
@@ -87,24 +86,7 @@ function PerspectiveSound(path, startNow) {
 			}
 	};
 
-	// Load a sound file using an ArrayBuffer XMLHttpRequest.
-	if(loadedSounds[path] === undefined) {
-		var request = new XMLHttpRequest();
-		request.open("GET", path, true);
-		request.responseType = "arraybuffer";
-		request.onload = function(e) {
-
-		  // Create a buffer from the response ArrayBuffer.
-		  var buffer = ctx.createBuffer(this.response, false);
-		  loadedSounds[path] = buffer;
-
-		  plugBuffer(buffer);
-
-		};
-		request.send();
-	} else {
-		plugBuffer(loadedSounds[path]);
-	}
+	plugBuffer(soundBuffer);
 }
 
 
