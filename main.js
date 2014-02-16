@@ -6,17 +6,27 @@
 
 // 1 is boundary
 // 2 is tower
-var map = [ // 1  2  3  4  5  6  7  8  9
-           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
-           [1, 0, 2, 0, 0, 0, 0, 2, 0, 1,], // 2
-           [1, 0, 0, 0, 0, 3, 0, 0, 0, 1,], // 3
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
-           [1, 0, 0, 0, 0, 0, 0, 3, 0, 1,], // 5
-           [1, 0, 0, 0, 3, 0, 0, 0, 0, 1,], // 6
-           [1, 0, 2, 0, 0, 0, 0, 2, 0, 1,], // 7
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
-           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 9
+var map = [ // 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19
+           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
+           [1, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
+           [1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
+           [1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 9
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 10
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 11
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 12
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 13
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 14
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 15
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 16
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 17
+           [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 18
+           [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 19
            ], mapW = map.length, mapH = map[0].length;
 
 // Semi-constants
@@ -147,7 +157,7 @@ function checkDoneLoading(txt) {
 		$("#loading").remove();
 		return;
 	}
-	$("#loading span").html(txt + ": " + loadingPercentage);
+	$("#loading span").text(txt + ": " + loadingPercentage);
 }
 
 /* textures */
@@ -253,7 +263,7 @@ function init() {
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
-	scene.fog = new t.FogExp2(0xD6F1FF, 0.0005); // color, density
+	scene.fog = new t.FogExp2(0x000000, 0.00005); // color, density
 	
 	// load 3d model 
     // var loader = new THREE.JSONLoader();
@@ -318,7 +328,7 @@ function init() {
 	
 	// Display the HUD: radar, health, score, and credits/directions
 	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
-	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
+	$('body').append('<canvas id="radar" width="400" height="400"></canvas>');
 
 	for (var i = 0; i < ai.length; i++) {
 		ai[i].sound.start();
@@ -795,7 +805,7 @@ function addAI() {
 
 	// aiMaterial.wireframe = true;
 	x = Math.floor(x - mapW/2) * UNITSIZE;
-	z = Math.floor(z - mapW/2) * UNITSIZE;
+	z = Math.floor(z - mapH/2) * UNITSIZE;
 	o.position.set(x, UNITSIZE * 0.15, z);
 
 	o.health = 100;
@@ -857,7 +867,7 @@ function distance(x1, y1, x2, y2) {
 
 function getMapSector(v) {
 	var x = Math.floor((v.x + UNITSIZE / 2) / UNITSIZE + mapW/2);
-	var z = Math.floor((v.z + UNITSIZE / 2) / UNITSIZE + mapW/2);
+	var z = Math.floor((v.z + UNITSIZE / 2) / UNITSIZE + mapH/2);
 	return {x: x, z: z};
 }
 
