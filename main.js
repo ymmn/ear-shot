@@ -141,6 +141,7 @@ function requestPointerLockPls(){
 
 // Initialize and run on document ready
 $(document).ready(function() {
+	$("#instructions").hide();
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
 		e.preventDefault();
@@ -153,6 +154,13 @@ $(document).ready(function() {
 		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 
 	});
+
+	$("#buttonInstr").on('click', function(e) {
+		$("#buttons").hide();
+		$("#instructions").show();
+	});
+
+
 	// Hook pointer lock state change events
 	document.addEventListener( 'pointerlockchange', pointerlockchange, false );
 	document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );

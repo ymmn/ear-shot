@@ -217,10 +217,11 @@ THREE.PointerLockControls = function ( camera ) {
 	}();
 	var counter = 0;
 	var moved = 0;
+	var recoilAmt = -0.01;
 
 	this.update = function ( delta ) {
 
-		var movespeed = 20.12;
+		var movespeed = 5;
 		var friction = 0.8;
 
 		if ( scope.enabled === false ) return;
@@ -235,25 +236,34 @@ THREE.PointerLockControls = function ( camera ) {
 
 		
 
-		if ( moveForward ) {
-			velocity.z -= movespeed * delta;
+		// if ( moveForward ) {
+		// 	velocity.z -= movespeed * delta;
 
-			console.log(counter);
+		// 	//console.log(counter);
 
-			if (counter == 0){
-				var recoilAmt = -0.05;
-				moved = 0;
-				pitchObject.rotation.x += recoilAmt;
-			}
+		// 	var downcount = 10;
+		// 	if (counter < downcount){
+		// 		moved = 0;
+		// 		if (counter%3 == 0){
+		// 			pitchObject.rotation.x += recoilAmt;
+		// 		}	
+		// 		console.log("recoilAmt = -0.001");
+		// 	}
 			
-			if (moved >= recoilAmt){
-				var recoverSpeed = 0.001;
-				pitchObject.rotation.x += recoverSpeed;
-				moved -= recoverSpeed;
-			}	
+		// 	console.log("recoil =" + downcount * recoilAmt);
+		// 	console.log("m =" + moved);
+		// 	if (moved >= (downcount - 1) * recoilAmt){
+		// 		var recoverSpeed = 0.001;
+		// 		if (counter%3 == 0){
+		// 			pitchObject.rotation.x += recoverSpeed;
+		// 		}	
+				
+		// 		moved -= recoverSpeed;
+		// 		console.log("moved = " + moved);
+		// 	}	
 			
-			counter = (counter + 1)%2000;
-		}
+		// 	counter = (counter + 1)%80;
+		// }
 		if ( moveBackward ) velocity.z += movespeed * delta;
 
 		if ( moveLeft ) velocity.x -= movespeed * delta;
