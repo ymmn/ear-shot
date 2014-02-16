@@ -135,6 +135,11 @@ THREE.PointerLockControls = function ( camera ) {
 				attemptPickup = false;
 				break;
 
+			case 81:
+				weaponIndex++;
+				weaponIndex = weaponIndex % WEAPONS.length;
+				break;
+
 			case 37: // left
 			case 65: // a
 				moveLeft = false;
@@ -156,7 +161,7 @@ THREE.PointerLockControls = function ( camera ) {
 
 	var onMouseDown = function(e) {
 		if(ammo > 0) {
-			var recoilAmt = 0.15;
+			var recoilAmt = WEAPONS[weaponIndex].recoil;
 			var moved = 0;
 			var recoverSpeed = 0.001;
 			pitchObject.rotation.x += recoilAmt;
