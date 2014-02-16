@@ -26,12 +26,12 @@ var WIDTH = window.innerWidth,
 	MOVESPEED = 100,
 	LOOKSPEED = 0.075,
 	BULLETMOVESPEED = MOVESPEED * 15,
-	NUMAI = 3,
+	NUMAI = 5,
 	PROJECTILEDAMAGE = 50;
 	DAMAGERADIUS = 20,
-	MAXAMMO = 3;
+	MAXAMMO = 10;
 	GOTHIT = false,
-	DEBUG = true,
+	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
 	manifest = [
@@ -48,11 +48,29 @@ var WIDTH = window.innerWidth,
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
 var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXAMMO, lastShotFired = 0;
 var healthCube, lastHealthPickup = 0;
+var accuracy = 0, numShots = 0, numHits = 0;
+var hitAnything = false;
+
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
 	allowDiagonal: true,
 }), grid = new PF.Grid(mapW, mapH, map);
 */
+var pointerlockchange = function ( event ) {
+
+	var element = document.body;
+	if ( document.pointerLockElement === element || document.mozPointerLockElement === element || document.webkitPointerLockElement === element ) {
+		controls.enabled = true;
+		$("#intro").fadeOut();
+		$("#crosshair").show();
+	} else {
+		controls.enabled = false;
+		$("#intro").show();
+		$("#crosshair").hide();
+	}
+
+};
+
 function requestPointerLockPls(){
 
 	// Ask the browser to lock the pointer
@@ -90,20 +108,17 @@ function requestPointerLockPls(){
 
 // Initialize and run on document ready
 $(document).ready(function() {
-	$('body').append('<div id="intro">Click to start</div>');
-	$('#intro').css({width: WIDTH, height: HEIGHT}).one('click', function(e) {
+	$('#intro').css({width: WIDTH, height: HEIGHT});
+	$("#play").on('click', function(e) {
 		e.preventDefault();
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
-		$(this).fadeOut();
-
-		// show crosshair
-		$("#crosshair").show();
-		init();
-		// setInterval(drawRadar, 1000);
-		animate();
 	});
+	// Hook pointer lock state change events
+	document.addEventListener( 'pointerlockchange', pointerlockchange, false );
+	document.addEventListener( 'mozpointerlockchange', pointerlockchange, false );
+	document.addEventListener( 'webkitpointerlockchange', pointerlockchange, false );
 	/*
 	new t.ColladaLoader().load('models/Yoshi/Yoshi.dae', function(collada) {
 		model = collada.scene;
@@ -113,6 +128,9 @@ $(document).ready(function() {
 		scene.add(model);
 	});
 	*/
+	init();
+	// setInterval(drawRadar, 1000);
+	animate();
 });
 
 
@@ -129,7 +147,6 @@ function init() {
 	cam = new t.PerspectiveCamera(60, ASPECT, 1, 10000); // FOV, aspect, near, far
 	cam.position.y = UNITSIZE * .2;
 	controls = new THREE.PointerLockControls( cam );
-	controls.enabled = true;
 	scene.add( controls.object );
 	// scene.add( cam );
 	
@@ -161,7 +178,16 @@ function init() {
 	$(document).click(function(e) {
 		e.preventDefault;
 		if (e.which === 1) { // Left click only
-			createBullet();
+			if(ammo > 0) {
+				numShots++;
+				hitAnything = false;
+			}
+			var opos = controls.object.position;
+			var r = function(){ return 50 * Math.random() - 25; };
+			for(var i = 0; i < 10; i++) {
+				pos = { x: opos.x + r(), y: opos.y, z: opos.z + r() };
+				createBullet(undefined, pos);
+			}
 		}
 	});
 	
@@ -181,6 +207,7 @@ function animate() {
 var time = Date.now();
 // Update and display
 function render() {
+	if(!controls.enabled) return;
 	var delta = clock.getDelta(), speed = delta * BULLETMOVESPEED;
 	var aispeed = delta * 1 *MOVESPEED / 10;
 	var tdelta = Date.now() - time;
@@ -194,7 +221,7 @@ function render() {
 
 	
 	// Rotate the health cube
-	healthcube.rotation.x += 0.004
+	healthcube.rotation.x += 0.004;
 	healthcube.rotation.y += 0.008;
 
 	// Allow picking it up once per minute
@@ -212,6 +239,7 @@ function render() {
 	}
 
 	// Update bullets. Walk backwards through the list so we can remove items.
+	var hAnything = false;
 	for (var i = bullets.length-1; i >= 0; i--) {
 		var b = bullets[i], p = b.position, d = b.ray.direction;
 		// console.log("bullet flyinggg");
@@ -227,6 +255,7 @@ function render() {
 			var v = a.geometry.vertices[0];
 			var c = a.position;
 			var x = Math.abs(v.x), z = Math.abs(v.z);
+			a.invisible = !DEBUG;
 			//console.log(Math.round(p.x), Math.round(p.z), c.x, c.z, x, z);
 			if (p.x < c.x + x && p.x > c.x - x &&
 					p.z < c.z + z && p.z > c.z - z &&
@@ -257,6 +286,7 @@ function render() {
 				break;
 			}
 		}
+		hAnything = hAnything || hit;
 		// Bullet hits player
 		if (distance(p.x, p.z, controls.object.position.x, controls.object.position.z) < 25 && b.owner != cam) {
 			$('#hurt').fadeIn(75);
@@ -280,15 +310,32 @@ function render() {
 			b.translateZ(speed * d.z);
 		}
 	}
+	if(!hitAnything && hAnything){
+		 numHits++;
+		 hitAnything = true;
+	}
 
 	// Update AI.
 	// console.log(ai.length);
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
+
+		/* make ai appear or disappear */
+		// console.log(a.invisible);
+		if(a.invisible != a.prevInvisible) {
+			if(a.invisible) {
+				// console.log("REMOVINGGG");
+				scene.remove(a);
+			} else {
+				// console.log("ADDING TO SCENE");
+				scene.add(a);
+			}
+		}
+		a.prevInvisible = a.invisible;
 		// console.log("I HAVE AI");
 		var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
 		if (a.health <= 0) {
-			// console.log("HEALTH LO");
+			console.log("DED");
 			ai.splice(i, 1);
 			scene.remove(a);
 			kills++;
@@ -309,6 +356,11 @@ function render() {
 			addAI();
 		}
 
+		/* reload */
+		if ((Date.now() > lastShotFired + 2000) && ammo < MAXAMMO) {
+			ammo = MAXAMMO;
+			createjs.Sound.play('guncock');
+		}
 
 
 		/* update enemy audio based on position and orientation */
@@ -480,7 +532,7 @@ function setupScene() {
 	// }
 
 	// Display the HUD: radar, health, score, and credits/directions
-	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p></div>');
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -530,11 +582,8 @@ function addAI() {
 	o.sound = new AI_Sound();
 
 	ai.push(o);
-	if(!DEBUG) {
-		o.invisible = true;
-	} else {
-		scene.add(o);
-	}
+	o.invisible = !DEBUG;
+	o.prevInvisible = DEBUG;
 }
 
 function getAIpath(a) {
@@ -640,19 +689,15 @@ function drawRadar() {
 var bullets = [];
 var sphereMaterial = new t.MeshBasicMaterial({color: 0x333333});
 var sphereGeo = new t.SphereGeometry(2, 6, 6);
-function createBullet(obj) {
+function createBullet(obj, pos) {
 	if (obj === undefined) {
 		obj = cam;
 	}
 	var sphere = new t.Mesh(sphereGeo, sphereMaterial);
-	sphere.position.set(controls.object.position.x, controls.object.position.y * 0.8, controls.object.position.z);
+	sphere.position.set(pos.x, pos.y * 0.8, pos.z);
 
 	if (obj instanceof t.Camera) {
-		if (ammo <= 0) {
-			if (Date.now() > lastShotFired + 2000)
-				ammo = MAXAMMO;
-				createjs.Sound.play('guncock');
-		} else {
+		if(ammo > 0) {
 			lastShotFired = Date.now();
 			ammo--;
 			createjs.Sound.play('gunshot');
@@ -665,6 +710,7 @@ function createBullet(obj) {
 			sphere.owner = obj;
 			
 			bullets.push(sphere);
+			// console.log(bullets.length);
 			scene.add(sphere);
 		}
 	}
@@ -723,8 +769,13 @@ $(window).blur(function() {
 	if (controls) controls.freeze = true;
 });
 
+window.setInterval(function(){
+	$("#accuracy").html( Math.round(10000 * numHits / numShots) / 100);
+}, 1000);
+
 //Get a random integer between lo and hi, inclusive.
 //Assumes lo and hi are integers and lo is lower than hi.
 function getRandBetween(lo, hi) {
  return parseInt(Math.floor(Math.random()*(hi-lo+1))+lo, 10);
 }
+

@@ -65,6 +65,10 @@ THREE.PointerLockControls = function ( camera ) {
 				moveRight = true;
 				break;
 
+			case 70:
+				DEBUG = true;
+				break;
+
 			case 32: // space
 				if ( canJump === true ) velocity.y += gravityDir.y * -10;
 				canJump = false;
@@ -117,6 +121,10 @@ THREE.PointerLockControls = function ( camera ) {
 			case 38: // up
 			case 87: // w
 				moveForward = false;
+				break;
+
+			case 70:
+				DEBUG = false;
 				break;
 
 			case 37: // left
