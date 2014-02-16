@@ -514,6 +514,15 @@ function render() {
 // Set up the objects in the world
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
+
+	// environment map
+	var cubemap = t.ImageUtils.loadTexture('images/sky.jpg');
+	cubemap.wrapS = cubemap.wrapT = t.RepeatWrapping;
+	var cubeMat = new t.MeshBasicMaterial({map: cubemap});
+	var skybox = new t.Mesh( new t.CubeGeometry( 10000, 3000, 10000 ), cubeMat );
+	cubeMat.side = t.BackSide;
+	scene.add(skybox);
+
 	// Geometry: floor
 	var floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
 	floorTex.wrapS = t.RepeatWrapping;
