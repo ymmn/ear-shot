@@ -7,8 +7,11 @@ TODO
 - [ ] Make detectors work
 - [ ] Larger map
 - [ ] Instructions
-- [ ] Loading screen at beginning of the game
+- [X] Loading screen at beginning of the game
 - [ ] Difficulty design
+- [ ] Make towers die
+- [ ] Repair tower items
+- [ ] Fix radar
 - [X] Redo floor to be infinite plane
 - [X] Draw 3d world with one cube
 - [X] Redo AIs
