@@ -4,15 +4,17 @@
  *   is vertical
  */
 
+// 1 is boundary
+// 2 is tower
 var map = [ // 1  2  3  4  5  6  7  8  9
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 0
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 1
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 2
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 1,], // 2
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 3
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 4
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 5
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 6
-           [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 7
+           [1, 0, 2, 0, 0, 0, 0, 2, 0, 1,], // 7
            [1, 0, 0, 0, 0, 0, 0, 0, 0, 1,], // 8
            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1,], // 9
            ], mapW = map.length, mapH = map[0].length;
@@ -48,6 +50,7 @@ var WIDTH = window.innerWidth,
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
 var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXAMMO, lastShotFired = 0;
 var healthCube, lastHealthPickup = 0;
+var towers = [];
 var accuracy = 0, numShots = 0, numHits = 0;
 var hitAnything = false;
 
@@ -377,18 +380,23 @@ function render() {
 		}
 
 		// Move AI
-		//var r = Math.random();
-		//if (r > 0.995) {
-		//	a.lastRandomX = Math.random() * 2 - 1;
-		//	a.lastRandomZ = Math.random() * 2 - 1;
-		//}
-		//a.translateX(aispeed * a.lastRandomX);
-		//a.translateZ(aispeed * a.lastRandomZ);
-		var transX = -a.position.x + controls.object.position.x;
-		var transZ = -a.position.z + controls.object.position.z;
+		var closestTarget;
+		var minDist = -1;
+		for (var k = 0; k < towers.length; k++) {
+			var dist = Math.abs(towers[k].position.x - a.position.x) + Math.abs(towers[k].position.z - a.position.z);
+			if (dist < minDist || minDist == -1) {
+				minDist = dist;
+				closestTarget = towers[k];
+			}
+		}
+		var playerDist = Math.abs(controls.object.position.x - a.position.x) + Math.abs(controls.object.position.z - a.position.z);
+		if (playerDist < minDist)
+			closestTarget = controls.object;
+
+		var transX = closestTarget.position.x - a.position.x;
+		var transZ = closestTarget.position.z - a.position.z;
 		a.translateX(aispeed * transX/100);
 		a.translateZ(aispeed * transZ/100);
-		// console.log(transX);
 		var c = getMapSector(a.position);
 		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
 			a.translateX(-2 * aispeed * a.lastRandomX);
@@ -487,6 +495,8 @@ function setupScene() {
 			floorMesh
 	);
 	scene.add(floor);
+
+	// Trees
 	for (var i = 0; i < mapW-1; i++) {
 		for (var j = 0; j < mapH-1; j++) {
 			if (Math.random() > 0.75) {
@@ -514,6 +524,16 @@ function setupScene() {
 			scene.add(leaves);
 		}
 	}
+
+	//Towers
+	for (var i = 0; i < mapW; i++) {
+		for (var j = 0, m = map[i].length; j < m; j++) {
+			if (map[i][j] == 2) {
+				createTower({ x: (i - units/2)*UNITSIZE, y: 0, z: (j - units/2) * UNITSIZE });
+			}
+		}
+	}
+
 	
 	// // Geometry: walls
 	// var cube = new t.CubeGeometry(UNITSIZE, WALLHEIGHT, UNITSIZE);
@@ -565,7 +585,7 @@ function setupAI() {
 
 function addAI() {
 	var c = getMapSector(controls.object.position);
-	var aiMaterial = new THREE.MeshLambertMaterial( { color: 0xFF0000, transparent: false } ); //= new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
+	var aiMaterial = new THREE.MeshLambertMaterial( { color: 0xFFBF00, transparent: false } ); //= new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
 	var o = new t.Mesh(aiGeo, aiMaterial);
 	do {
 		var x = getRandBetween(0, mapW-1);
@@ -658,15 +678,27 @@ function drawRadar() {
 	for (var i = 0; i < mapW; i++) {
 		for (var j = 0, m = map[i].length; j < m; j++) {
 			var d = 0;
+			var hasTower = false;
 			for (var k = 0, n = ai.length; k < n; k++) {
 				var e = getMapSector(ai[k].position);
 				if (i == e.x && j == e.z) {
 					d++; // num baddies in map
 				}
 			}
+			for (var k = 0, n = towers.length; k < n; k++) {
+				var e = getMapSector(towers[k].position);
+				if (i == e.x && j == e.z)
+					hasTower = true;
+			}
 			if (i == c.x && j == c.z && d == 0) { // your pos
 				context.fillStyle = '#0000FF';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
+			}
+			else if (hasTower) {
+				context.fillStyle = '#BB0000';
+				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
+				context.fillStyle = '#000000';
+				context.fillText(''+d, i*20+8, j*20+12);
 			}
 			else if (DEBUG && i == c.x && j == c.z) { // your and their pos
 				context.fillStyle = '#AA33FF';
@@ -675,12 +707,12 @@ function drawRadar() {
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
 			else if (DEBUG && d > 0 && d < 10) { // their pos
-				context.fillStyle = '#FF0000';
+				context.fillStyle = '#FFBF00';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
-			else if (map[i][j] > 0) { // wall
+			else if (map[i][j] == 1) { // wall
 				context.fillStyle = '#666666';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 			}
@@ -736,6 +768,19 @@ function createBullet(obj, pos) {
 	
 	return sphere;
 }
+
+function createTower(pos) {
+	var towerMesh = new t.MeshBasicMaterial({color: 0xBB0000});
+	var tower = new t.Mesh(
+		new t.CylinderGeometry(90, 140, 550, 8, 1, false), // top rad, bottom rad, height, vert faces, horiz faces, capped ends
+		towerMesh
+	);
+
+	tower.position.set(pos.x, pos.y, pos.z);
+	towers.push(tower);
+	scene.add(tower);
+}
+
 
 /*
 function loadImage(path) {
