@@ -129,7 +129,7 @@ $(document).ready(function() {
 	});
 	*/
 	init();
-	// setInterval(drawRadar, 1000);
+	setInterval(drawRadar, 1000);
 	animate();
 });
 
@@ -413,7 +413,6 @@ function render() {
 			$('#hurt').fadeOut(350);
 			GOTHIT = true;
 			setTimeout(function(){GOTHIT = false},1000);
-
 		}
 
 		/*
@@ -533,6 +532,7 @@ function setupScene() {
 
 	// Display the HUD: radar, health, score, and credits/directions
 	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -580,6 +580,8 @@ function addAI() {
 
 	/* add 3d sound */
 	o.sound = new AI_Sound();
+
+	o.type = Math.floor(Math.random() * 3);
 
 	ai.push(o);
 	o.invisible = !DEBUG;
