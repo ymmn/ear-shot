@@ -35,6 +35,7 @@ var WIDTH = window.innerWidth,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
+	initialized = false,
 	toggleDetector = false,
 	heldDetector = false,
 	manifest = [
@@ -205,16 +206,13 @@ $(document).ready(function() {
 	$("#play").on('click', function(e) {
 		e.preventDefault();
 		
-		init();
-		setInterval(drawRadar, 1000);
-		animate();
+		if(!initialized){
+			init();
+		}
 
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
-		// Display the HUD: radar, health, score, and credits/directions
-		$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
-		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 
 	});
 	// Hook pointer lock state change events
@@ -240,6 +238,7 @@ $(document).ready(function() {
 function init() {
 	// setupSound();
 	// createjs.Sound.registerManifest(manifest);
+	initialized = true;
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
@@ -282,6 +281,14 @@ function init() {
 	// Track mouse position so we know where to shoot
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 	
+	setInterval(drawRadar, 1000);
+
+	// Set up "hurt" flash
+	$('body').append('<div id="hurt"></div>');
+	$('#hurt').css({width: WIDTH, height: HEIGHT,});
+
+	animate();
+
 	// Shoot on click
 	$(document).click(function(e) {
 		e.preventDefault;
@@ -299,9 +306,9 @@ function init() {
 		}
 	});
 	
-	// Set up "hurt" flash
-	$('body').append('<div id="hurt"></div>');
-	$('#hurt').css({width: WIDTH, height: HEIGHT,});
+	// Display the HUD: radar, health, score, and credits/directions
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 }
 
 // Helper function for browser frames
