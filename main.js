@@ -35,6 +35,7 @@ var WIDTH = window.innerWidth,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
+	initialized = false,
 	toggleDetector = false,
 	heldDetector = false,
 	manifest = [
@@ -168,17 +169,23 @@ function preloadEverything() {
 	request.responseType = "arraybuffer";
 	request.onload = function(e) {
 	  footstepsBuffer = audioContext.createBuffer(this.response, false);
+	  loadingPercentage += 15;
+	  checkDoneLoading("Loading other sounds");
+	  console.log("loaded footsteps");
 	};	
+	request.send();
 	// detector noise
 	var request = new XMLHttpRequest();
 	request.open("GET", "assets/detector.wav", true);
 	request.responseType = "arraybuffer";
 	request.onload = function(e) {
 	  detectorBuffer = audioContext.createBuffer(this.response, false);
+	  loadingPercentage += 15;
+	  checkDoneLoading("Loading other sounds");
+	  console.log("loaded detector");
 	};	
+	request.send();
 
-	loadingPercentage += 30;
-	checkDoneLoading("Loading other sounds");
 
 	/* soundjs preloading */        
 	preload = new createjs.LoadQueue();
@@ -203,18 +210,20 @@ $(document).ready(function() {
 	preloadEverything();
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
+		if(loadingPercentage != 100) {
+			alert("hiya well pls wait cuz we're loading hehe");
+			return;
+		}
 		e.preventDefault();
 		
-		init();
-		setInterval(drawRadar, 1000);
-		animate();
+		if(!initialized){
+			init();
+		}
 
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
-		// Display the HUD: radar, health, score, and credits/directions
-		$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
-		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
+
 
 	});
 	// Hook pointer lock state change events
@@ -240,6 +249,7 @@ $(document).ready(function() {
 function init() {
 	// setupSound();
 	// createjs.Sound.registerManifest(manifest);
+	initialized = true;
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
@@ -267,9 +277,8 @@ function init() {
 
 	// World objects
 	setupScene();
-	
-	// Artificial Intelligence
 	setupAI();
+
 	
 	// Handle drawing as WebGL (faster than Canvas but less supported)
 	renderer = new t.WebGLRenderer();
@@ -282,6 +291,14 @@ function init() {
 	// Track mouse position so we know where to shoot
 	document.addEventListener( 'mousemove', onDocumentMouseMove, false );
 	
+	setInterval(drawRadar, 1000);
+
+	// Set up "hurt" flash
+	$('body').append('<div id="hurt"></div>');
+	$('#hurt').css({width: WIDTH, height: HEIGHT,});
+
+	animate();
+
 	// Shoot on click
 	$(document).click(function(e) {
 		e.preventDefault;
@@ -299,9 +316,13 @@ function init() {
 		}
 	});
 	
-	// Set up "hurt" flash
-	$('body').append('<div id="hurt"></div>');
-	$('#hurt').css({width: WIDTH, height: HEIGHT,});
+	// Display the HUD: radar, health, score, and credits/directions
+	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
+
+	for (var i = 0; i < ai.length; i++) {
+		ai[i].sound.start();
+	}
 }
 
 // Helper function for browser frames
@@ -333,25 +354,29 @@ function render() {
 	healthcube.rotation.y += 0.008;
 
 	for(var i = 0; i < detectors.length; i++) {
-		dtctor = detectors[i];
-		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && toggleDetector) {
-			if (!heldDetector) {
-				scene.remove(dtctor);
-				heldDetector = dtctor;
-				detectors.splice(i, 1);
-				toggleDetector = false;
-			}
-			if (dtctor.detected) {
-				dtctor.sound.start();
-				dtctor.isOn = true;
-			} else if (dtctor.isOn) {
-				dtctor.sound.stop();
-				dtctor.sound = new PerspectiveSound('assets/detector.wav');
-			}
+		var dtctor = detectors[i];
+		console.log(dtctor.detected, dtctor.isOn)
+		var d = distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z);
+		if (d < 30 && toggleDetector && !heldDetector) {
+			scene.remove(dtctor);
+			heldDetector = dtctor;
+			dtctor.detected = false;
+			detectors.splice(i, 1);
+			toggleDetector = false;
+		}
+		if (dtctor.detected && !dtctor.isOn) {
+			dtctor.sound.start();
+			dtctor.isOn = true;
+		} 
+		if (dtctor.isOn && !dtctor.detected) {
+			dtctor.sound.stop();
+			dtctor.isOn = false;
+			dtctor.sound = new PerspectiveSound(detectorBuffer);
 		}
 	}
+	console.log(toggleDetector,heldDetector,heldDetector.isOn);
 	if (heldDetector && toggleDetector) {
-		dtctor = heldDetector
+		var dtctor = heldDetector;
 		toggleDetector = false;
 		heldDetector = false;
 		dtctor.position.x = controls.object.position.x;
@@ -361,6 +386,7 @@ function render() {
 		scene.add(dtctor);
 		dtctor.sound.changeAudioPosition(dtctor.position.x, dtctor.position.y, dtctor.position.z);
 	}
+	console.log(toggleDetector,heldDetector,heldDetector.isOn);
 
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
@@ -376,16 +402,18 @@ function render() {
 		healthcube.material.wireframe = true;
 	}
 
+	var hasDetected = [false, false, false];
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
-		var detected = false;
 		for(var j = 0; j < detectors.length; j++){
+			console.log('buh',detectors[j].detected)
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
 			if (d < 100) {
 				dtctor.detected = true;
+				hasDetected[j] = true;
 				break;
-			} else {
+			} else if (!hasDetected[j]) {
 				dtctor.detected = false;
 			}
 		}
@@ -510,7 +538,8 @@ function render() {
 			}
 			deathSound.setVolume(vol);
 			$('#score').html(kills * 100);
-			addAI();
+			var o = addAI();
+			o.sound.start();
 		}
 
 		/* reload */
@@ -521,7 +550,7 @@ function render() {
 
 
 		/* update enemy audio based on position and orientation */
-		if(soundLoaded) {
+		if(a.sound.buffer) {
 			AIPos = a.position;
 			myPos = controls.object.position;
 			posVector = new THREE.Vector3(myPos.x-AIPos.x, myPos.y-AIPos.y, myPos.z-AIPos.z);
@@ -560,7 +589,8 @@ function render() {
 		if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
 			ai.splice(i, 1);
 			scene.remove(a);
-			addAI();
+			var o = addAI();
+			o.sound.start();
 		}
 		// AI Damage
 		if (!GOTHIT && distFromPlayer < DAMAGERADIUS) {
@@ -663,15 +693,16 @@ function setupScene() {
 		for (var j = 0; j < mapH-1; j++) {
 			if(map[i][j] == 3){
 				// draw detector
-				dtctor = new t.Mesh(
+				var dtctor = new t.Mesh(
 					new t.SphereGeometry(10),
 					new t.MeshLambertMaterial({color: 0xFFFFFF})
 				);
 				var x = (i-mapW/2) * UNITSIZE;
 				var z = (j-mapH/2) * UNITSIZE;
 				dtctor.position.set(x, 100, z);
-				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+				dtctor.sound = new PerspectiveSound(detectorBuffer);
 				dtctor.detected = false;
+				dtctor.isOn = false;
 				scene.add(dtctor);
 				detectors[dcnt] = dtctor;
 				dcnt++;
@@ -776,13 +807,15 @@ function addAI() {
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
 
 	/* add 3d sound */
-	o.sound = new PerspectiveSound("assets/footsteps.mp3");
+	o.sound = new PerspectiveSound(footstepsBuffer);
 
 	o.type = Math.floor(Math.random() * 3);
 
 	ai.push(o);
 	o.invisible = !DEBUG;
 	o.prevInvisible = DEBUG;
+
+	return o;
 }
 
 function getAIpath(a) {

@@ -3,13 +3,13 @@ Ear-Shot
 
 TODO
 
-- [ ] Make detectors work
+- [X] Make detectors work
 - [ ] Larger map
 - [ ] Instructions
 - [ ] Difficulty design
 - [ ] Make towers die
 - [ ] Repair tower items
-- [ ] Fix radar
+- [X] Fix radar
 - [X] Loading screen at beginning of the game
 - [X] BUG: shoot while at edges
 - [X] Redo floor to be infinite plane
