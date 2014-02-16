@@ -481,8 +481,10 @@ function render() {
 
 		var transX = closestTarget.position.x - a.position.x;
 		var transZ = closestTarget.position.z - a.position.z;
-		a.translateX(aispeed * transX/100);
-		a.translateZ(aispeed * transZ/100);
+		if (!checkTowerCollision(a.position) || closestTarget == controls.object) {
+			a.translateX(aispeed * transX/100);
+			a.translateZ(aispeed * transZ/100);
+		}
 		var c = getMapSector(a.position);
 		if (c.x < 0 || c.x >= mapW || c.y < 0 || c.y >= mapH || checkWallCollision(a.position)) {
 			a.translateX(-2 * aispeed * a.lastRandomX);
@@ -779,6 +781,21 @@ function checkWallCollision(v) {
 	return map[c.x][c.z] == 1;
 }
 
+function checkTowerCollision(v) {
+	for (var i = 0; i < towers.length; i++) {
+			var dist = Math.abs(v.x - towers[i].position.x) + Math.abs(v.z - towers[i].position.z);
+			if (dist < 150) {
+				if (towers[i].gotHit == false) {
+					towers[i].health -= 1;
+					towers[i].gotHit = true;
+					setTimeout(function(){towers[i].gotHit = false}, 1000);
+				}
+				return true;
+			}
+	}
+	return false;
+}
+
 // Radar
 function drawRadar() {
 	var c = getMapSector(controls.object.position), context = document.getElementById('radar').getContext('2d');
@@ -800,10 +817,13 @@ function drawRadar() {
 					dd++; // num baddies in map
 				}
 			}
+			var tower;
 			for (var k = 0, n = towers.length; k < n; k++) {
 				var e = getMapSector(towers[k].position);
-				if (i == e.x && j == e.z)
+				if (i == e.x && j == e.z) {
 					hasTower = true;
+					tower = towers[k];
+				}
 			}
 			if (i == c.x && j == c.z && d == 0) { // your pos
 				context.fillStyle = '#0000FF';
@@ -813,7 +833,7 @@ function drawRadar() {
 				context.fillStyle = '#BB0000';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
-				context.fillText(''+d, i*20+8, j*20+12);
+				context.fillText(''+tower.health, i*20+8, j*20+12);
 			}
 			else if (DEBUG && i == c.x && j == c.z) { // your and their pos
 				context.fillStyle = '#AA33FF';
@@ -897,6 +917,8 @@ function createTower(pos) {
 	);
 
 	tower.position.set(pos.x, pos.y, pos.z);
+	tower.health = 100;
+	tower.gotHit = false;
 	towers.push(tower);
 	scene.add(tower);
 }
