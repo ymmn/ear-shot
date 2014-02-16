@@ -129,7 +129,7 @@ $(document).ready(function() {
 	});
 	*/
 	init();
-	// setInterval(drawRadar, 1000);
+	setInterval(drawRadar, 1000);
 	animate();
 });
 
@@ -417,7 +417,6 @@ function render() {
 			$('#hurt').fadeOut(350);
 			GOTHIT = true;
 			setTimeout(function(){GOTHIT = false},1000);
-
 		}
 
 		/*
@@ -537,6 +536,7 @@ function setupScene() {
 
 	// Display the HUD: radar, health, score, and credits/directions
 	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
@@ -584,6 +584,8 @@ function addAI() {
 
 	/* add 3d sound */
 	o.sound = new AI_Sound();
+
+	o.type = Math.floor(Math.random() * 3);
 
 	ai.push(o);
 	o.invisible = !DEBUG;
@@ -706,6 +708,9 @@ function createBullet(obj, pos) {
 			ammo--;
 			createjs.Sound.play('gunshot');
 			var vector = new t.Vector3(mouse.x, mouse.y, 1);
+			var r = function() { return Math.random()/10 };
+			var variation = new t.Vector3(r(), r(), 0);
+			vector.add(variation);
 			projector.unprojectVector(vector, obj);
 			sphere.ray = new t.Ray(
 					obj.position,
@@ -714,7 +719,6 @@ function createBullet(obj, pos) {
 			sphere.owner = obj;
 			
 			bullets.push(sphere);
-			// console.log(bullets.length);
 			scene.add(sphere);
 		}
 	}
