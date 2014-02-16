@@ -147,17 +147,18 @@ THREE.PointerLockControls = function ( camera ) {
 	};
 
 	var onMouseDown = function(e) {
-		if (ammo > 0) {
-			var temp = pitchObject.rotation.x;
-			pitchObject.rotation.x += .05;
-			var recoil = setInterval(function(){
-				pitchObject.rotation.x -= .005;
-				if (pitchObject.rotation.x <= temp) {
-					pitchObject.rotation.x = temp;
-					clearInterval(recoil);
-				}
-			},1);
-		}
+		var recoilAmt = 0.15;
+		var moved = 0;
+		var recoverSpeed = 0.001;
+		pitchObject.rotation.x += recoilAmt;
+		var recoil = setInterval(function(){
+			pitchObject.rotation.x -= recoverSpeed;
+			moved += recoverSpeed;
+			if (moved >= recoilAmt) {
+				// pitchObject.rotation.x = temp;
+				clearInterval(recoil);
+			}
+		},1)
 	};
 
 	document.addEventListener( 'mousemove', onMouseMove, false );

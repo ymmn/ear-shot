@@ -238,6 +238,11 @@ function render() {
 		healthcube.material.wireframe = true;
 	}
 
+	for (var i = ai.length-1; i >= 0; i--) {
+		var a = ai[i];
+		a.invisible = !DEBUG;
+	}
+
 	// Update bullets. Walk backwards through the list so we can remove items.
 	var hAnything = false;
 	for (var i = bullets.length-1; i >= 0; i--) {
@@ -255,7 +260,6 @@ function render() {
 			var v = a.geometry.vertices[0];
 			var c = a.position;
 			var x = Math.abs(v.x), z = Math.abs(v.z);
-			a.invisible = !DEBUG;
 			//console.log(Math.round(p.x), Math.round(p.z), c.x, c.z, x, z);
 			if (p.x < c.x + x && p.x > c.x - x &&
 					p.z < c.z + z && p.z > c.z - z &&
@@ -704,6 +708,9 @@ function createBullet(obj, pos) {
 			ammo--;
 			createjs.Sound.play('gunshot');
 			var vector = new t.Vector3(mouse.x, mouse.y, 1);
+			var r = function() { return Math.random()/10 };
+			var variation = new t.Vector3(r(), r(), 0);
+			vector.add(variation);
 			projector.unprojectVector(vector, obj);
 			sphere.ray = new t.Ray(
 					obj.position,
@@ -712,7 +719,6 @@ function createBullet(obj, pos) {
 			sphere.owner = obj;
 			
 			bullets.push(sphere);
-			// console.log(bullets.length);
 			scene.add(sphere);
 		}
 	}
