@@ -29,14 +29,14 @@ var WIDTH = window.innerWidth,
 	LOOKSPEED = 0.075,
 	BULLETMOVESPEED = MOVESPEED * 15,
 	NUMAI = 5,
-	PROJECTILEDAMAGE = 50;
+	BOOBOO_GUN = 1,
 	DAMAGERADIUS = 20,
-	MAXAMMO = 10;
 	GOTHIT = false,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
-	attemptPickup = false,
+	toggleDetector = false,
+	heldDetector = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
@@ -45,17 +45,44 @@ var WIDTH = window.innerWidth,
 		{id:"paingrunt", src:"assets/paingrunt.wav"},
 		{id:"deathgrunt", src:"assets/deathgrunt.wav"},
 		{id:"healthpack", src:"assets/healthpack.mp3"},
+		{id:"booboo", src:"assets/booboogun.wav"}
 	],
 	detectors = [1,2,3];
 
+
+
 // Global vars
 var t = THREE, scene, cam, renderer, controls, clock, projector, model, skin;
-var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXAMMO, lastShotFired = 0;
+var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = 10, lastShotFired = 0;
 var healthCube, lastHealthPickup = 0;
 var towers = [];
 var accuracy = 0, numShots = 0, numHits = 0;
 var hitAnything = false;
 var aiGeo = new t.CubeGeometry(40, 40, 40);
+
+var bullets = [];
+var sphereMaterial = new t.MeshBasicMaterial({color: 0x000000});
+var sphereGeo = new t.SphereGeometry(2, 6, 6);
+var boobooMaterial = new t.MeshBasicMaterial({color: 0xff69b4});
+WEAPONS = [
+	{
+		material: sphereMaterial,
+		damage: 50,
+		maxammo: 10,
+		bulletsPerShot: 10,
+		firingRate: 0,
+		recoil: 0.15
+	},
+	{
+		material: boobooMaterial,
+		damage: 0,
+		maxammo: 10,
+		bulletsPerShot: 1,
+		firingRate: 50,
+		recoil: 0
+	}
+],
+weaponIndex = 0;
 
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
@@ -201,9 +228,9 @@ function init() {
 			}
 			var opos = controls.object.position;
 			var r = function(){ return 3 * (Math.random() - 0.5); };
-			for(var i = 0; i < 10; i++) {
-				pos = { x: opos.x + r(), y: opos.y + 70 + r(), z: opos.z + r() };
-				createBullet(undefined, pos);
+			for(var i = 0; i < WEAPONS[weaponIndex].bulletsPerShot; i++) {
+				pos = opos; //{ x: opos.x + r(), y: opos.y, z: opos.z + r() };
+				createBullet(undefined, pos, WEAPONS[weaponIndex]);
 			}
 		}
 	});
@@ -243,10 +270,32 @@ function render() {
 
 	for(var i = 0; i < detectors.length; i++) {
 		dtctor = detectors[i];
-		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && attemptPickup) {
-			scene.remove(dtctor);
-			detectors.splice(i, 1);
+		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && toggleDetector) {
+			if (!heldDetector) {
+				scene.remove(dtctor);
+				heldDetector = dtctor;
+				detectors.splice(i, 1);
+				toggleDetector = false;
+			}
+			if (dtctor.detected) {
+				dtctor.sound.start();
+				dtctor.isOn = true;
+			} else if (dtctor.isOn) {
+				dtctor.sound.stop();
+				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+			}
 		}
+	}
+	if (heldDetector && toggleDetector) {
+		dtctor = heldDetector
+		toggleDetector = false;
+		heldDetector = false;
+		dtctor.position.x = controls.object.position.x;
+		dtctor.position.z = controls.object.position.z;
+		dtctor.isOn = false;
+		detectors.push(dtctor);
+		scene.add(dtctor);
+		dtctor.sound.changeAudioPosition(dtctor.position.x, dtctor.position.y, dtctor.position.z);
 	}
 
 	// Allow picking it up once per minute
@@ -270,11 +319,13 @@ function render() {
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
 			if (d < 100) {
-				detected = true;
+				dtctor.detected = true;
 				break;
+			} else {
+				dtctor.detected = false;
 			}
 		}
-		a.invisible = !detected && !DEBUG;
+		a.invisible = !DEBUG;
 	}
 
 	// Update bullets. Walk backwards through the list so we can remove items.
@@ -300,13 +351,17 @@ function render() {
 					b.owner != a) {
 				bullets.splice(i, 1);
 				scene.remove(b);
-				a.health -= PROJECTILEDAMAGE;
+				a.health -= b.damage;
 				scene.remove(a);
 				a.invisible = DEBUG;
 				console.log("DAMAGE");
 				var distFromPlayer = distance(a.position.x, a.position.z, controls.object.position.x, controls.object.position.z);
 				if (a.health > 0) {
-					var hurtSound = createjs.Sound.play('hurt');
+					var hurtFile = "hurt";
+					if(weaponIndex == BOOBOO_GUN) {
+						hurtFile = "booboo";
+					}
+					var hurtSound = createjs.Sound.play(hurtFile);
 					var vol;
 					if (distFromPlayer > MAXDIST) {
 						vol = 0.01;
@@ -395,8 +450,8 @@ function render() {
 		}
 
 		/* reload */
-		if ((Date.now() > lastShotFired + 2000) && ammo < MAXAMMO) {
-			ammo = MAXAMMO;
+		if (ammo === 0 && (Date.now() > lastShotFired + 2000)) {
+			ammo = WEAPONS[weaponIndex].maxammo;
 			createjs.Sound.play('guncock');
 		}
 
@@ -522,7 +577,7 @@ function setupScene() {
 	var floorMesh = new t.MeshBasicMaterial({map: floorTex});
 	// floorTex = new t.MeshLambertMaterial({color: 0xABCABC})
 	var floor = new t.Mesh(
-			new t.CubeGeometry(units * UNITSIZE, 10, units * UNITSIZE),
+			new t.CubeGeometry(10 * units * UNITSIZE, 10, 10 * units * UNITSIZE),
 			floorMesh
 	);
 	scene.add(floor);
@@ -533,16 +588,19 @@ function setupScene() {
 		for (var j = 0; j < mapH-1; j++) {
 			if(map[i][j] == 3){
 				// draw detector
-				detectors[dcnt] = new t.Mesh(
+				dtctor = new t.Mesh(
 					new t.SphereGeometry(10),
 					new t.MeshLambertMaterial({color: 0xFFFFFF})
 				);
 				var x = (i-mapW/2) * UNITSIZE;
 				var z = (j-mapH/2) * UNITSIZE;
-				detectors[dcnt].position.set(x, 100, z);
-				scene.add(detectors[dcnt]);
+				dtctor.position.set(x, 100, z);
+				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+				dtctor.detected = false;
+				scene.add(dtctor);
+				detectors[dcnt] = dtctor;
 				dcnt++;
-			}else if (Math.random() > 0.75) {
+			} else if (Math.random() > 0.75) {
 				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
 				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
 				// treeTex.repeat.set(5,1);
@@ -644,7 +702,7 @@ function addAI() {
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
 
 	/* add 3d sound */
-	o.sound = new AI_Sound();
+	o.sound = new PerspectiveSound("assets/footsteps.mp3");
 
 	o.type = Math.floor(Math.random() * 3);
 
@@ -708,8 +766,8 @@ function getMapSector(v) {
  */
 function checkWallCollision(v) {
 	var c = getMapSector(v);
-	if(map[c.x] === undefined) return true;
-	return map[c.x][c.z] > 0;
+	if (map[c.x] === undefined) return true;
+	return map[c.x][c.z] == 1;
 }
 
 // Radar
@@ -778,18 +836,17 @@ function drawRadar() {
 	}
 }
 
-var bullets = [];
-var sphereMaterial = new t.MeshBasicMaterial({color: 0x000000});
-var sphereGeo = new t.SphereGeometry(2, 6, 6);
-function createBullet(obj, pos) {
+function createBullet(obj, pos, weapon) {
 	if (obj === undefined) {
 		obj = cam;
 	}
-	var sphere = new t.Mesh(sphereGeo, sphereMaterial);
+	var sphere = new t.Mesh(sphereGeo, weapon.material);
 	sphere.position.set(pos.x, pos.y * 0.8, pos.z);
+	sphere.damage = weapon.damage;
 
 	if (obj instanceof t.Camera) {
-		if(ammo > 0) {
+		var dt = Date.now() - lastShotFired;
+		if(ammo > 0 && dt >= weapon.firingRate) {
 			lastShotFired = Date.now();
 			ammo--;
 			createjs.Sound.play('gunshot');
