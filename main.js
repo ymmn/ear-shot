@@ -183,7 +183,7 @@ function init() {
 				hitAnything = false;
 			}
 			var opos = controls.object.position;
-			var r = function(){ return 50 * Math.random() - 25; };
+			var r = function(){ return 3 * (Math.random() - 0.5); };
 			for(var i = 0; i < 10; i++) {
 				pos = { x: opos.x + r(), y: opos.y, z: opos.z + r() };
 				createBullet(undefined, pos);
@@ -708,7 +708,7 @@ function createBullet(obj, pos) {
 			ammo--;
 			createjs.Sound.play('gunshot');
 			var vector = new t.Vector3(mouse.x, mouse.y, 1);
-			var r = function() { return Math.random()/10 };
+			var r = function() { return (Math.random()-0.5) / 6 };
 			var variation = new t.Vector3(r(), r(), 0);
 			vector.add(variation);
 			projector.unprojectVector(vector, obj);
