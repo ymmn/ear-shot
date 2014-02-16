@@ -693,7 +693,7 @@ function drawRadar() {
 }
 
 var bullets = [];
-var sphereMaterial = new t.MeshBasicMaterial({color: 0x333333});
+var sphereMaterial = new t.MeshBasicMaterial({color: 0x000000});
 var sphereGeo = new t.SphereGeometry(2, 6, 6);
 function createBullet(obj, pos) {
 	if (obj === undefined) {
