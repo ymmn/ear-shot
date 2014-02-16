@@ -552,7 +552,7 @@ function setupScene() {
 	var floorMesh = new t.MeshBasicMaterial({map: floorTex});
 	// floorTex = new t.MeshLambertMaterial({color: 0xABCABC})
 	var floor = new t.Mesh(
-			new t.CubeGeometry(units * UNITSIZE, 10, units * UNITSIZE),
+			new t.CubeGeometry(10 * units * UNITSIZE, 10, 10 * units * UNITSIZE),
 			floorMesh
 	);
 	scene.add(floor);
@@ -738,8 +738,8 @@ function getMapSector(v) {
  */
 function checkWallCollision(v) {
 	var c = getMapSector(v);
-	if(map[c.x] === undefined) return true;
-	return map[c.x][c.z] > 0;
+	if (map[c.x] === undefined) return true;
+	return map[c.x][c.z] == 1;
 }
 
 // Radar
