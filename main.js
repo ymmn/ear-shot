@@ -139,12 +139,76 @@ function requestPointerLockPls(){
 
 }
 
+var loadingPercentage = 0;
+
+function checkDoneLoading(txt) {
+	if(loadingPercentage == 100) {
+		$("#loading").remove();
+		return;
+	}
+	$("#loading span").html(txt + ": " + loadingPercentage);
+}
+
+/* textures */
+var floorTex;
+var treeTex;
+var footstepsBuffer;
+var detectorBuffer; 
+function preloadEverything() {
+	checkDoneLoading("Setting up sound");
+
+	setupSound();
+	loadingPercentage += 10;
+	checkDoneLoading("Loading 3d sounds");
+
+	/* Preload the 3d sounds */
+	// footsteps 
+	var request = new XMLHttpRequest();
+	request.open("GET", "assets/footsteps.mp3", true);
+	request.responseType = "arraybuffer";
+	request.onload = function(e) {
+	  footstepsBuffer = audioContext.createBuffer(this.response, false);
+	};	
+	// detector noise
+	var request = new XMLHttpRequest();
+	request.open("GET", "assets/detector.wav", true);
+	request.responseType = "arraybuffer";
+	request.onload = function(e) {
+	  detectorBuffer = audioContext.createBuffer(this.response, false);
+	};	
+
+	loadingPercentage += 30;
+	checkDoneLoading("Loading other sounds");
+
+	/* soundjs preloading */        
+	preload = new createjs.LoadQueue();
+    preload.installPlugin(createjs.Sound);
+    preload.addEventListener("complete", function(){
+    	loadingPercentage += 30;
+   		checkDoneLoading("Loading textures");
+    }); // add an event listener for when load is completed
+    preload.loadManifest(manifest);
+
+
+	/* load the textures */
+	floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
+	treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+
+	loadingPercentage += 30;
+	checkDoneLoading("Done!");
+}
+
 // Initialize and run on document ready
 $(document).ready(function() {
+	preloadEverything();
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
 		e.preventDefault();
 		
+		init();
+		setInterval(drawRadar, 1000);
+		animate();
+
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
@@ -166,16 +230,16 @@ $(document).ready(function() {
 		scene.add(model);
 	});
 	*/
-	init();
-	setInterval(drawRadar, 1000);
-	animate();
+	// init();
+	// setInterval(drawRadar, 1000);
+	// animate();
 });
 
 
 // Setup
 function init() {
-	setupSound();
-	createjs.Sound.registerManifest(manifest);
+	// setupSound();
+	// createjs.Sound.registerManifest(manifest);
 	clock = new t.Clock(); // Used in render() for controls.update()
 	projector = new t.Projector(); // Used in bullet projection
 	scene = new t.Scene(); // Holds all objects in the canvas
@@ -581,7 +645,6 @@ function setupScene() {
 	scene.add(skybox);
 
 	// Geometry: floor
-	var floorTex = t.ImageUtils.loadTexture('images/floor-forest2.png');
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
 	floorTex.repeat.set(20,20);
@@ -611,8 +674,7 @@ function setupScene() {
 				scene.add(dtctor);
 				detectors[dcnt] = dtctor;
 				dcnt++;
-			} else if (Math.random() > 0.75) {
-				var treeTex = t.ImageUtils.loadTexture('images/bark.jpg');
+			}else if (Math.random() > 0.75) {
 				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
 				// treeTex.repeat.set(5,1);
 				var treeMesh = new t.MeshBasicMaterial({map: treeTex});

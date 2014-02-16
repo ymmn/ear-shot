@@ -84,6 +84,7 @@
   <script src="jquery-1.7.2.min.js"></script>
   <script src="soundcontrols.js"></script>
   <script src="soundjs-0.5.2.min.js"></script>
+  <script src="preloadjs-NEXT.min.js"></script>
   <!-- <script src="Pathfinder.js"></script> -->
   <!-- <script src="Three.js"></script> -->
   <script src="three.min.js"></script>
@@ -94,8 +95,11 @@
 </head>
 <body>
   <div id="intro">
-    <div id="play"><a>Play</a></div>
-    <div><a>Instructions</a></div>
+    <div id="loading">Loading <span>0</span>%</div>
+    <div id="menu">
+      <div id="play"><a>Play</a></div>
+      <div><a>Instructions</a></div>
+    </div>
   </div>
   <img width="100" id="crosshair" src="assets/crosshair.png"></img>
 </body>
