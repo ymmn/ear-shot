@@ -59,6 +59,7 @@ var WIDTH = window.innerWidth,
 		{id:"booboo", src:"assets/booboogun.wav"},
 		{id:"low-beep", src:"assets/low-beep.wav"},
 		{id:"med-beep", src:"assets/med-beep.wav"},
+		{id:"next-wave", src:"assets/next-wave.wav"},
 		{id:"towerdamage", src:"assets/towerdamage.mp3"},
 		{id:"hi-beep", src:"assets/hi-beep.wav"}
 	],
@@ -365,6 +366,7 @@ var waveToEnemies = [0, 1, 2, 4, 7, 10, 13, 17, 20];
 function launchWave() {
 	waveNum++;
 
+	createjs.Sound.play("next-wave");
 	var numEnemies = waveToEnemies[waveNum];
 
 	for(var i = 0; i < numEnemies; i++) {
@@ -398,7 +400,7 @@ function render() {
 		var dtctor = detectors[i];
 		// console.log(dtctor.detected, dtctor.isOn)
 		var d = distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z);
-		if (d < 30 && toggleDetector && !heldDetector) {
+		if (d < 50 && toggleDetector && !heldDetector) {
 			scene.remove(dtctor);
 			heldDetector = dtctor;
 			dtctor.detected = false;
@@ -450,7 +452,7 @@ function render() {
 			// console.log('buh',detectors[j].detected)
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
-			if (d < 100) {
+			if (d < 300) {
 				dtctor.detected = true;
 				hasDetected[j] = true;
 				break;
@@ -1016,10 +1018,12 @@ function drawRadar() {
 				}
 			}
 			var tower;
+			var underAttack = false;
 			for (var k = 0, n = towers.length; k < n; k++) {
 				var e = getMapSector(towers[k].position);
 				if (i == e.x && j == e.z) {
 					hasTower = true;
+					underAttack = towers[k].gotHit;
 					tower = towers[k];
 				}
 			}
@@ -1028,7 +1032,11 @@ function drawRadar() {
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 			}
 			else if (hasTower) {
-				context.fillStyle = '#BB0000';
+				var col = '#00FF00';
+				if( underAttack ) {
+					col = '#BB0000';
+				}
+				context.fillStyle = col; 
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+tower.health, i*20+8, j*20+12);
@@ -1119,7 +1127,7 @@ function createTower(pos) {
 	);
 
 	tower.position.set(pos.x, pos.y, pos.z);
-	tower.health = 100;
+	tower.health = 99;
 	tower.gotHit = false;
 	towers.push(tower);
 	scene.add(tower);
