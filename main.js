@@ -35,7 +35,8 @@ var WIDTH = window.innerWidth,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
-	attemptPickup = false,
+	toggleDetector = false,
+	heldDetector = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
@@ -333,10 +334,32 @@ function render() {
 
 	for(var i = 0; i < detectors.length; i++) {
 		dtctor = detectors[i];
-		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && attemptPickup) {
-			scene.remove(dtctor);
-			detectors.splice(i, 1);
+		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && toggleDetector) {
+			if (!heldDetector) {
+				scene.remove(dtctor);
+				heldDetector = dtctor;
+				detectors.splice(i, 1);
+				toggleDetector = false;
+			}
+			if (dtctor.detected) {
+				dtctor.sound.start();
+				dtctor.isOn = true;
+			} else if (dtctor.isOn) {
+				dtctor.sound.stop();
+				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+			}
 		}
+	}
+	if (heldDetector && toggleDetector) {
+		dtctor = heldDetector
+		toggleDetector = false;
+		heldDetector = false;
+		dtctor.position.x = controls.object.position.x;
+		dtctor.position.z = controls.object.position.z;
+		dtctor.isOn = false;
+		detectors.push(dtctor);
+		scene.add(dtctor);
+		dtctor.sound.changeAudioPosition(dtctor.position.x, dtctor.position.y, dtctor.position.z);
 	}
 
 	// Allow picking it up once per minute
@@ -360,11 +383,13 @@ function render() {
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
 			if (d < 100) {
-				detected = true;
+				dtctor.detected = true;
 				break;
+			} else {
+				dtctor.detected = false;
 			}
 		}
-		a.invisible = !detected && !DEBUG;
+		a.invisible = !DEBUG;
 	}
 
 	// Update bullets. Walk backwards through the list so we can remove items.
@@ -608,6 +633,15 @@ function render() {
 // Set up the objects in the world
 function setupScene() {
 	var UNITSIZE = 250, units = mapW;
+
+	// environment map
+	var cubemap = t.ImageUtils.loadTexture('images/sky.jpg');
+	cubemap.wrapS = cubemap.wrapT = t.RepeatWrapping;
+	var cubeMat = new t.MeshBasicMaterial({map: cubemap});
+	var skybox = new t.Mesh( new t.CubeGeometry( 10000, 3000, 10000 ), cubeMat );
+	cubeMat.side = t.BackSide;
+	scene.add(skybox);
+
 	// Geometry: floor
 	floorTex.wrapS = t.RepeatWrapping;
 	floorTex.wrapT = t.RepeatWrapping;
@@ -626,14 +660,17 @@ function setupScene() {
 		for (var j = 0; j < mapH-1; j++) {
 			if(map[i][j] == 3){
 				// draw detector
-				detectors[dcnt] = new t.Mesh(
+				dtctor = new t.Mesh(
 					new t.SphereGeometry(10),
 					new t.MeshLambertMaterial({color: 0xFFFFFF})
 				);
 				var x = (i-mapW/2) * UNITSIZE;
 				var z = (j-mapH/2) * UNITSIZE;
-				detectors[dcnt].position.set(x, 100, z);
-				scene.add(detectors[dcnt]);
+				dtctor.position.set(x, 100, z);
+				dtctor.sound = new PerspectiveSound('assets/detector.wav');
+				dtctor.detected = false;
+				scene.add(dtctor);
+				detectors[dcnt] = dtctor;
 				dcnt++;
 			}else if (Math.random() > 0.75) {
 				treeTex.wrapS = treeTex.wrapT = t.RepeatWrapping;
@@ -736,7 +773,7 @@ function addAI() {
 	o.lastShot = Date.now(); // Higher-fidelity timers aren't a big deal here.
 
 	/* add 3d sound */
-	o.sound = new AI_Sound();
+	o.sound = new PerspectiveSound("assets/footsteps.mp3");
 
 	o.type = Math.floor(Math.random() * 3);
 
