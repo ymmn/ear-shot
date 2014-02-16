@@ -111,8 +111,13 @@ $(document).ready(function() {
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
 		e.preventDefault();
+		
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
+
+		// Display the HUD: radar, health, score, and credits/directions
+		$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
+		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 
 	});
 	// Hook pointer lock state change events
@@ -534,9 +539,6 @@ function setupScene() {
 	// 	}
 	// }
 
-	// Display the HUD: radar, health, score, and credits/directions
-	$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
-	$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
 	
 	// Health cube
 	healthcube = new t.Mesh(
