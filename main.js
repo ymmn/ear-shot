@@ -34,6 +34,7 @@ var WIDTH = window.innerWidth,
 	DEBUG = false,
 	MAXDIST = 750,
 	soundLoaded = false,
+	attemptPickup = false,
 	manifest = [
 		{id:"death", src:"assets/death.wav"},
 		{id:"hurt", src:"assets/hurt.wav"},
@@ -237,6 +238,14 @@ function render() {
 	healthcube.rotation.x += 0.004;
 	healthcube.rotation.y += 0.008;
 
+	for(var i = 0; i < detectors.length; i++) {
+		dtctor = detectors[i];
+		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && attemptPickup) {
+			scene.remove(dtctor);
+			detectors.splice(i, 1);
+		}
+	}
+
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
 		if (distance(controls.object.position.x, controls.object.position.z, healthcube.position.x, healthcube.position.z) < 15 && health != 100) {
@@ -253,7 +262,16 @@ function render() {
 
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
-		a.invisible = !DEBUG;
+		var detected = false;
+		for(var j = 0; j < detectors.length; j++){
+			var dtctor = detectors[j];
+			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
+			if (d < 100) {
+				detected = true;
+				break;
+			}
+		}
+		a.invisible = !detected && !DEBUG;
 	}
 
 	// Update bullets. Walk backwards through the list so we can remove items.
@@ -690,6 +708,13 @@ function drawRadar() {
 					d++; // num baddies in map
 				}
 			}
+			var dd = 0;
+			for (var k = 0, n = detectors.length; k < n; k++) {
+				var e = getMapSector(detectors[k].position);
+				if (i == e.x && j == e.z) {
+					dd++; // num baddies in map
+				}
+			}
 			if (i == c.x && j == c.z && d == 0) { // your pos
 				context.fillStyle = '#0000FF';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
@@ -706,7 +731,13 @@ function drawRadar() {
 				context.fillStyle = '#000000';
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
-			else if (map[i][j] > 0) { // wall
+			else if (dd > 0) { // detectors
+				context.fillStyle = '#FFFF00';
+				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
+				context.fillStyle = '#000000';
+				context.fillText(''+dd, i*20+8, j*20+12);
+			}
+			else if (map[i][j] === 1) { // wall
 				context.fillStyle = '#666666';
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 			}
