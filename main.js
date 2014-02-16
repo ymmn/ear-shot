@@ -647,15 +647,18 @@ function render() {
 	time = Date.now();
 	
 	// Death
-	// if (health <= 0) {
-	// 	runAnim = false;
-	// 	$(renderer.domElement).fadeOut();
-	// 	$('#radar, #hud, #credits').fadeOut();
-	// 	$('#intro').fadeIn();
-	// 	$('#intro').html('Ouch! Click to restart...');
-	// 	$('#intro').one('click', function() {
-	// 		location = location;
-			/*
+	if (health <= 0 || towers.length <= 0) {
+		runAnim = false;
+		$(renderer.domElement).fadeOut();
+		$('#radar, #hud, #credits').fadeOut();
+		$('#intro').fadeIn();
+		$('#play').html('Ouch! Click to restart...');
+		document.exitPointerLock = document.exitPointerLock ||
+								   document.mozExitPointerLock ||
+								   document.webkitExitPointerLock;
+		document.exitPointerLock();
+		$('#play').on('click', function() {
+
 			$(renderer.domElement).fadeIn();
 			$('#radar, #hud, #credits').fadeIn();
 			$(this).fadeOut();
@@ -663,14 +666,13 @@ function render() {
 			animate();
 			health = 100;
 			$('#health').html(health);
-			kills--;
-			if (kills <= 0) kills = 0;
+			kills = 0;
 			$('#score').html(kills * 100);
 			cam.translateX(-controls.object.position.x);
 			cam.translateZ(-controls.object.position.z);
-			*/
-	// 	});
-	// }
+			
+		});
+	}
 }
 
 // Set up the objects in the world
