@@ -238,8 +238,6 @@ THREE.PointerLockControls = function ( camera ) {
 		if ( moveForward ) {
 			velocity.z -= movespeed * delta;
 
-			console.log(counter);
-
 			if (counter == 0){
 				var recoilAmt = -0.05;
 				moved = 0;

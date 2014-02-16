@@ -4,9 +4,9 @@ var changeListenerOrientation;
 var dbgChangeListenerOrientation;
 
 var audioContext;
-var enemySoundBuffer;
+var loadedSounds = {};
 var SOUNDVOLUME = 20;
-function PerspectiveSound(path) {
+function PerspectiveSound(path, startNow) {
 
 	var ctx = audioContext;
 	var that = this;
@@ -30,6 +30,7 @@ function PerspectiveSound(path) {
 
 	// Make the sound source loop.
 	var plugBuffer = function(buffer){
+
 		  sound.buffer = buffer;
 
 		  // Make the sound source use the buffer and start playing it.
@@ -45,13 +46,12 @@ function PerspectiveSound(path) {
 			that.start = function() {
 				sound.source.start();
 			}
-			
+
 			that.stop = function() {
 				sound.source.stop();
 			};
 			
 			that.changeAudioPosition = function (x, y, z) {
-				// console.log("(" + x + ", " + y + ", " + z + ")");
 				sound.panner.setPosition(x, y, z);
 			};
 
@@ -82,10 +82,13 @@ function PerspectiveSound(path) {
 				m.n34 = mz;
 			};
 
+			if(startNow) {
+				that.start();
+			}
 	};
 
 	// Load a sound file using an ArrayBuffer XMLHttpRequest.
-	if(enemySoundBuffer === undefined){
+	if(loadedSounds[path] === undefined) {
 		var request = new XMLHttpRequest();
 		request.open("GET", path, true);
 		request.responseType = "arraybuffer";
@@ -93,16 +96,14 @@ function PerspectiveSound(path) {
 
 		  // Create a buffer from the response ArrayBuffer.
 		  var buffer = ctx.createBuffer(this.response, false);
-		  enemySoundBuffer = buffer;
+		  loadedSounds[path] = buffer;
 
 		  plugBuffer(buffer);
-
-
 
 		};
 		request.send();
 	} else {
-		plugBuffer(enemySoundBuffer);
+		plugBuffer(loadedSounds[path]);
 	}
 }
 
@@ -139,7 +140,6 @@ function setupSound() {
 
 	changeListenerOrientation = function(camera) {
 		// The camera's world matrix is named "matrix".
-		// console.log(camera.matrix.elements);
 		var m = camera.matrix;
 
 		var mx = m.n14, my = m.n24, mz = m.n34;
@@ -157,7 +157,6 @@ function setupSound() {
 		// m.multiplyVector3(up);
 		up.normalize();
 
-		// console.log("(" + vec.x + ", " + vec.y + ", " + vec.z + ")");
 		// Set the orientation and the up-vector for the listener.
 		ctx.listener.setOrientation(vec.x, vec.y, vec.z, up.x, up.y, up.z);
 	};

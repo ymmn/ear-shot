@@ -143,11 +143,17 @@ function requestPointerLockPls(){
 $(document).ready(function() {
 	$('#intro').css({width: WIDTH, height: HEIGHT});
 	$("#play").on('click', function(e) {
+		if(!soundLoaded) {
+			alert("hiya well pls wait cuz we're loading hehe");
+			return;
+		}
 		e.preventDefault();
-		
 		// Ask the browser to lock the pointer
 		requestPointerLockPls();
 
+		for (var i = 0; i < ai.length; i++) {
+			ai[i].sound.start();
+		}
 		// Display the HUD: radar, health, score, and credits/directions
 		$('body').append('<div id="hud"><p>Health: <span id="health">100</span></p><p>Score: <span id="score">0</span></p><p>Kills: <span id="kills">0</span></p><p>Accuracy: <span id="accuracy">0</span>%</p></div>');
 		$('body').append('<canvas id="radar" width="200" height="200"></canvas>');
@@ -203,9 +209,8 @@ function init() {
 
 	// World objects
 	setupScene();
-	
-	// Artificial Intelligence
 	setupAI();
+
 	
 	// Handle drawing as WebGL (faster than Canvas but less supported)
 	renderer = new t.WebGLRenderer();
@@ -269,25 +274,29 @@ function render() {
 	healthcube.rotation.y += 0.008;
 
 	for(var i = 0; i < detectors.length; i++) {
-		dtctor = detectors[i];
-		if (distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z) < 30 && toggleDetector) {
-			if (!heldDetector) {
-				scene.remove(dtctor);
-				heldDetector = dtctor;
-				detectors.splice(i, 1);
-				toggleDetector = false;
-			}
-			if (dtctor.detected) {
-				dtctor.sound.start();
-				dtctor.isOn = true;
-			} else if (dtctor.isOn) {
-				dtctor.sound.stop();
-				dtctor.sound = new PerspectiveSound('assets/detector.wav');
-			}
+		var dtctor = detectors[i];
+		console.log(dtctor.detected, dtctor.isOn)
+		var d = distance(controls.object.position.x, controls.object.position.z, dtctor.position.x, dtctor.position.z);
+		if (d < 30 && toggleDetector && !heldDetector) {
+			scene.remove(dtctor);
+			heldDetector = dtctor;
+			dtctor.detected = false;
+			detectors.splice(i, 1);
+			toggleDetector = false;
+		}
+		if (dtctor.detected && !dtctor.isOn) {
+			dtctor.sound.start();
+			dtctor.isOn = true;
+		} 
+		if (dtctor.isOn && !dtctor.detected) {
+			dtctor.sound.stop();
+			dtctor.isOn = false;
+			dtctor.sound = new PerspectiveSound('assets/detector.wav');
 		}
 	}
+	console.log(toggleDetector,heldDetector,heldDetector.isOn);
 	if (heldDetector && toggleDetector) {
-		dtctor = heldDetector
+		var dtctor = heldDetector;
 		toggleDetector = false;
 		heldDetector = false;
 		dtctor.position.x = controls.object.position.x;
@@ -297,6 +306,7 @@ function render() {
 		scene.add(dtctor);
 		dtctor.sound.changeAudioPosition(dtctor.position.x, dtctor.position.y, dtctor.position.z);
 	}
+	console.log(toggleDetector,heldDetector,heldDetector.isOn);
 
 	// Allow picking it up once per minute
 	if (Date.now() > lastHealthPickup + 60000) {
@@ -314,14 +324,16 @@ function render() {
 
 	for (var i = ai.length-1; i >= 0; i--) {
 		var a = ai[i];
-		var detected = false;
+		var hasDetected = [false, false, false];
 		for(var j = 0; j < detectors.length; j++){
+			console.log('buh',detectors[j].detected)
 			var dtctor = detectors[j];
 			var d = distance(a.position.x, a.position.z, dtctor.position.x, dtctor.position.z);
 			if (d < 100) {
 				dtctor.detected = true;
+				hasDetected[j] = true;
 				break;
-			} else {
+			} else if (!hasDetected[j]) {
 				dtctor.detected = false;
 			}
 		}
@@ -446,7 +458,8 @@ function render() {
 			}
 			deathSound.setVolume(vol);
 			$('#score').html(kills * 100);
-			addAI();
+			var o = addAI();
+			o.sound.start();
 		}
 
 		/* reload */
@@ -457,7 +470,7 @@ function render() {
 
 
 		/* update enemy audio based on position and orientation */
-		if(soundLoaded) {
+		if(a.sound.buffer) {
 			AIPos = a.position;
 			myPos = controls.object.position;
 			posVector = new THREE.Vector3(myPos.x-AIPos.x, myPos.y-AIPos.y, myPos.z-AIPos.z);
@@ -493,7 +506,8 @@ function render() {
 		if (c.x < -1 || c.x > mapW || c.z < -1 || c.z > mapH) {
 			ai.splice(i, 1);
 			scene.remove(a);
-			addAI();
+			var o = addAI();
+			o.sound.start();
 		}
 		// AI Damage
 		if (!GOTHIT && distFromPlayer < DAMAGERADIUS) {
@@ -588,7 +602,7 @@ function setupScene() {
 		for (var j = 0; j < mapH-1; j++) {
 			if(map[i][j] == 3){
 				// draw detector
-				dtctor = new t.Mesh(
+				var dtctor = new t.Mesh(
 					new t.SphereGeometry(10),
 					new t.MeshLambertMaterial({color: 0xFFFFFF})
 				);
@@ -597,6 +611,7 @@ function setupScene() {
 				dtctor.position.set(x, 100, z);
 				dtctor.sound = new PerspectiveSound('assets/detector.wav');
 				dtctor.detected = false;
+				dtctor.isOn = false;
 				scene.add(dtctor);
 				detectors[dcnt] = dtctor;
 				dcnt++;
@@ -709,6 +724,8 @@ function addAI() {
 	ai.push(o);
 	o.invisible = !DEBUG;
 	o.prevInvisible = DEBUG;
+
+	return o;
 }
 
 function getAIpath(a) {
