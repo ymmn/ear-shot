@@ -681,6 +681,9 @@ function createBullet(obj, pos) {
 			ammo--;
 			createjs.Sound.play('gunshot');
 			var vector = new t.Vector3(mouse.x, mouse.y, 1);
+			var r = function() { return Math.random()/10 };
+			var variation = new t.Vector3(r(), r(), 0);
+			vector.add(variation);
 			projector.unprojectVector(vector, obj);
 			sphere.ray = new t.Ray(
 					obj.position,
@@ -689,7 +692,6 @@ function createBullet(obj, pos) {
 			sphere.owner = obj;
 			
 			bullets.push(sphere);
-			// console.log(bullets.length);
 			scene.add(sphere);
 		}
 	}
