@@ -26,6 +26,7 @@ function AI_Sound() {
 	// Hook up the sound volume control to the main volume.
 	sound.volume.connect(sound.panner);
 	sound.panner.connect(ctx.destination);
+	this.sound = sound;
 
 	// Make the sound source loop.
 	var plugBuffer = function(buffer){
