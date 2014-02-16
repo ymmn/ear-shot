@@ -894,7 +894,7 @@ function checkTowerCollision(v, isEnemy) {
 			var dist = Math.abs(v.x - towers[i].position.x) + Math.abs(v.z - towers[i].position.z);
 			if (dist < 150) {
 				if (towers[i].gotHit == false && isEnemy == true) {
-					towers[i].health -= 50;
+					towers[i].health -= 2;
 					towers[i].gotHit = true;
 					setTimeout(function(){
 						if (towers[i] != null)
@@ -926,10 +926,14 @@ function drawRadar() {
 				}
 			}
 			var dd = 0;
+			var ddAlarm = false;
 			for (var k = 0, n = detectors.length; k < n; k++) {
 				var e = getMapSector(detectors[k].position);
 				if (i == e.x && j == e.z) {
 					dd++; // num baddies in map
+					if(detectors[k].isOn){
+						ddAlarm = true;
+					}
 				}
 			}
 			var tower;
@@ -963,7 +967,11 @@ function drawRadar() {
 				context.fillText(''+d, i*20+8, j*20+12);
 			}
 			else if (dd > 0) { // detectors
-				context.fillStyle = '#FFFF00';
+				var col = '#FFFF00';
+				if(ddAlarm){
+					col = '#FFA500';
+				}
+				context.fillStyle = col;
 				context.fillRect(i * 20, j * 20, (i+1)*20, (j+1)*20);
 				context.fillStyle = '#000000';
 				context.fillText(''+dd, i*20+8, j*20+12);
