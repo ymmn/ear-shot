@@ -50,6 +50,7 @@ var runAnim = true, mouse = { x: 0, y: 0 }, kills = 0, health = 100, ammo = MAXA
 var healthCube, lastHealthPickup = 0;
 var accuracy = 0, numShots = 0, numHits = 0;
 var hitAnything = false;
+var aiGeo = new t.CubeGeometry(40, 40, 40);
 
 /*
 var finder = new PF.AStarFinder({ // Defaults to Manhattan heuristic
@@ -148,6 +149,12 @@ function init() {
 	scene = new t.Scene(); // Holds all objects in the canvas
 	scene.fog = new t.FogExp2(0xD6F1FF, 0.0005); // color, density
 	
+	// load 3d model 
+    // var loader = new THREE.JSONLoader();
+    // loader.load( "models/zombie.js", function(geometry){
+    // 	aiGeo = geometry;
+    // });
+
 	// Set up camera
 	cam = new t.PerspectiveCamera(60, ASPECT, 1, 10000); // FOV, aspect, near, far
 	cam.position.y = UNITSIZE * .2;
@@ -558,7 +565,6 @@ function setupScene() {
 }
 
 var ai = [];
-var aiGeo = new t.CubeGeometry(40, 40, 40);
 function setupAI() {
 	for (var i = 0; i < NUMAI; i++) {
 		addAI();
@@ -567,16 +573,20 @@ function setupAI() {
 
 function addAI() {
 	var c = getMapSector(controls.object.position);
+
 	var aiMaterial = new THREE.MeshLambertMaterial( { color: 0xFF0000, transparent: false } ); //= new t.MeshBasicMaterial({/*color: 0xEE3333,*/map: t.ImageUtils.loadTexture('images/face.png')});
 	var o = new t.Mesh(aiGeo, aiMaterial);
+
 	do {
 		var x = getRandBetween(0, mapW-1);
 		var z = getRandBetween(0, mapH-1);
 	} while (map[x][z] > 0 || (x == c.x && z == c.z));
+
 	// aiMaterial.wireframe = true;
 	x = Math.floor(x - mapW/2) * UNITSIZE;
 	z = Math.floor(z - mapW/2) * UNITSIZE;
 	o.position.set(x, UNITSIZE * 0.15, z);
+
 	o.health = 100;
 	//o.path = getAIpath(o);
 	o.pathPos = 1;
